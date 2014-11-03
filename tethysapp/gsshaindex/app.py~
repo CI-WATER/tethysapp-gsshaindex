@@ -1,0 +1,43 @@
+from tethys_apps.base import TethysAppBase, PersistentStore, app_controller_maker
+
+
+class GSSHAIndex(TethysAppBase):
+    """
+    Tethys App Class for GSSHA Index.
+    """
+
+    name = 'GSSHA Index'
+    index = 'gsshaindex:home'
+    icon = 'gsshaindex/images/icon.gif'
+    package = 'gsshaindex'
+    root_url = 'gsshaindex'
+    color = '#ff00ff'
+        
+    def controllers(self):
+        """
+        Add controllers
+        """
+        AppController = app_controller_maker(self.root_url)
+
+        controllers = (AppController(name='home',
+                                     url='gsshaindex',
+                                     controller='gsshaindex.controllers.home'
+                       ),AppController(name='secondpg',
+                                     url='gsshaindex/{name}',
+                                     controller='gsshaindex.controllers.secondpg'
+                       ),
+        )
+
+        return controllers
+
+    def persistent_stores(self):
+        """
+        Add persistent stores
+        """
+        stores = (PersistentStore(name='primary',
+                                  initializer='init_stores:init_primary',
+                                  postgis=True
+                  ),
+        )
+
+        return stores

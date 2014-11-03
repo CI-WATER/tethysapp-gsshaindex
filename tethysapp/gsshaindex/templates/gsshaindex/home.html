@@ -1,0 +1,96 @@
+{% extends "gsshaindex/base.html" %}
+
+{% block app_navigation_items %}
+  <li class="title">App Navigation</li>
+  <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
+  <li><a href="">Past Results</a></li>
+  <li class="title">Steps</li>
+  <li><a href="">1. The First Step</a></li>
+  <li><a href="">2. The Second Step</a></li>
+  <li><a href="">3. The Third Step</a></li>
+  <li class="separator"></li>
+  <li><a href="">Get Started</a></li>
+{% endblock %}
+
+{% block primary_content %}
+  <div class="module">
+    <div class="module-content">
+      {% if model_list|count < 1 %}
+      	<h1 class="heading_title">No GSSHA Models</h1>
+      {% else %}
+      	<h1 class="heading_title">GSSHA Model: {{model_list[0]['name']}}</h1>
+        <h4>Model Description</h4>
+	    <p id="description">{{model_list[0]['description']}}</p>
+	  {% endif %}
+	  {% snippet "snippets/editable_google_map.html", options=editable_map %}
+    </div>
+  </div>
+{% endblock %}
+
+{% block secondary_content %}
+   <div class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+      <i class="icon-globe"></i>
+      Select a Model
+    </h2>
+    <div class="module-content">
+        {% if model_list|count < 1 %}
+            <p>There are no GSSHA models. Please upload some to your datasets or ensure your models are labeled with "Model" as "GSSHA". </p>
+        {% else %}
+            <p>Below is a list of GSSHA models stored in the datasets. Please select which one you would like to edit.</p>
+            <div id="models-div" style="height:400px;overflow-y:auto">
+                <ul class="nav nav-pills nav-stacked">
+                    {% for model in model_list %}
+                    <li {% if file_id==model['id'] %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model['id']}}" onclick="changeMap(this, '{{model['id']}}', '{{model['description']}}', '{{model['name']}}', '{{model['url']}}', '{{model['certification']}}');">{{model['name']}}{% if model['certification']=="True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
+    </div>
+    {% if c.model_list|count > 0 %}
+        <form action="{% url_for 'gsshaindex' %}" method="post">
+            <div style="padding:15px" align="center">
+                <button name="submit_gssha" class="btn btn-success btn-large" type="submit">Select</button>
+                <input type="text" id="file_id" name="file_id" value= "{{c.file_id}}" style="display:none">
+                <input type="text" id="file_name" name="file_name" value="{{c.file_name}}" style="display:none">
+                <input type="text" id="file_url" name="file_url" value="{{c.file_url}}" style="display:none">
+                <input type="text" id="file_certtification" name="file_certification" value="{{c.file_certification}}" style="display:none">
+            </div>
+        </form>
+        <div style="padding:15px" align="center">
+            <a href="{% url 'gsshaindex:status'%}" class="btn btn-info">See Past Comparisons</a>
+        </div>
+    {% endif %}
+
+  </div>
+{% endblock %}
+
+{% block app_actions %}
+  <a href="{% url 'gsshaindex:secondpg' name='bob' %}" class="btn btn-default">Next</a>
+  <a href="" class="btn btn-default">Back</a>
+{% endblock %}
+
+{% block scripts %}
+	{{ super() }}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script>
+		function changeMap(element, file_id, description, file_name, file_url, file_certification) {
+			$('.models').each(function(file_id){
+				$(this).removeClass('active')
+			});
+			$('#file_id').val(file_id);
+			$('#file_name').val(file_name);
+			$('#file_url').val(file_url);
+			$('#file_certification').val(file_certification);
+			$('.models').each(function(){
+				if ($(this).children('a').get(0).id == file_id){
+					$(this).addClass('active');
+					$('#description').text(description);
+					$('.heading_title').text("GSSHA Model: "+$(element).text())
+				};
+			});
+			TETHYS_EDIT_MAP.swapKmlService('/apps/gssha-index/get-mask-map/'+file_id);
+		};
+	</script>
+	{% resource 'ckanext_apps/js/tethys_map.js' %}
+{% endblock %}

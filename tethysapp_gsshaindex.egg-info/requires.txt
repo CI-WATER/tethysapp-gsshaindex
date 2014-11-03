@@ -1,0 +1,4 @@
+gsshapy>=2.0.0
+sqlalchemy==0.7.8
+owslib
+gsconfig
