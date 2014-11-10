@@ -12,11 +12,6 @@ engine = get_persistent_store_engine('primary')
 SessionMaker = sessionmaker(bind=engine)
 Base = declarative_base()
 
-# Get sqlalchemy url
-# config_path = os.path.join(os.path.abspath(os.path.dirname(__file__)), 'app.ini')
-# app_config = ConfigParser.RawConfigParser()
-# app_config.read(config_path)
-
 # Create DB Engine, SessionMaker, and Base for jobs DB
 Engine = get_persistent_store_engine("gsshaidx_db")
 jobs_sessionmaker = sessionmaker(bind=Engine)
@@ -54,10 +49,10 @@ class Jobs(Base):
     name = Column(String)
     created = Column(DateTime)
     user_id = Column(String)
+    kml_url = Column(String)
     original_model = Column(PickleType)
     new_model = Column(PickleType)
     current_kmls = Column(String)
-    percentage = Column(Integer)
     run_urls = Column(PickleType)
     run_date = Column(DateTime)
     result_urls = Column(PickleType)
@@ -77,11 +72,10 @@ class Jobs(Base):
         self.created = datetime.now()
         self.user_id = user_id
         self.original_model = original_model
-        self.percentage = 0
         self.new_model = {}
         self.run_urls = {}
         self.result_urls = {}
         self.status = "pending"
 
     def __repr__(self):
-        return "Id: ('%s'), name: ('%s'), user_id: ('%s'), status: ('%s'), original model: ('%s'), new model: ('%s'), percentage: ('%s'),current kmls: ('%s'), run urls: ('%s'), run date: ('%s'), new name ('%s'), result urls ('%s')" % (self.id, self.name, self.user_id, self.status, self.original_model, self.new_model, self.percentage,self.current_kmls, self.run_urls, self.run_date, self.new_name, self.result_urls)
+        return "Id: ('%s'), name: ('%s'), user_id: ('%s'), status: ('%s'), kml_url: ('%s'), original model: ('%s'), new model: ('%s'), current kmls: ('%s'), run urls: ('%s'), run date: ('%s'), new name ('%s'), result urls ('%s')" % (self.id, self.name, self.user_id, self.status, self,kml_url, self.original_model, self.new_model, self.current_kmls, self.run_urls, self.run_date, self.new_name, self.result_urls)

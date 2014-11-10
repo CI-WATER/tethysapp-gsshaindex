@@ -1,5 +1,7 @@
 {% extends "gsshaindex/base.html" %}
 
+{% load tethys_gizmos %}
+
 {% block app_navigation_items %}
   <li class="title">App Navigation</li>
   <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
@@ -15,14 +17,14 @@
 {% block primary_content %}
   <div class="module">
     <div class="module-content">
-      {% if model_list|count < 1 %}
+      {% if model_list|length < 1 %}
       	<h1 class="heading_title">No GSSHA Models</h1>
       {% else %}
-      	<h1 class="heading_title">GSSHA Model: {{model_list[0]['name']}}</h1>
+      	<h1 class="heading_title">GSSHA Model: {{ model_list.0.name }}</h1>
         <h4>Model Description</h4>
-	    <p id="description">{{model_list[0]['description']}}</p>
+	    <p id="description">{{ model_list.0.description }}</p>
 	  {% endif %}
-	  {% snippet "snippets/editable_google_map.html", options=editable_map %}
+      {% gizmo google_map google_map %}
     </div>
   </div>
 {% endblock %}
@@ -34,27 +36,28 @@
       Select a Model
     </h2>
     <div class="module-content">
-        {% if model_list|count < 1 %}
+        {% if model_list|length < 1 %}
             <p>There are no GSSHA models. Please upload some to your datasets or ensure your models are labeled with "Model" as "GSSHA". </p>
         {% else %}
             <p>Below is a list of GSSHA models stored in the datasets. Please select which one you would like to edit.</p>
             <div id="models-div" style="height:400px;overflow-y:auto">
                 <ul class="nav nav-pills nav-stacked">
+                    {% gizmo select_input select_model %}
                     {% for model in model_list %}
-                    <li {% if file_id==model['id'] %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model['id']}}" onclick="changeMap(this, '{{model['id']}}', '{{model['description']}}', '{{model['name']}}', '{{model['url']}}', '{{model['certification']}}');">{{model['name']}}{% if model['certification']=="True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
+                    <li {% if file_id == model.id %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model.id}}" onclick="changeMap(this, '{{model.id}}', '{{model.description}}', '{{model.name}}', '{{model.url}}', '{{model.certification}}');">{{model.name}}{% if model.certification == "True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
                     {% endfor %}
                 </ul>
             </div>
         {% endif %}
     </div>
-    {% if c.model_list|count > 0 %}
-        <form action="{% url_for 'gsshaindex' %}" method="post">
+    {% if model_list|length > 0 %}
+        <form action="{% url 'gsshaindex' %}" method="post">
             <div style="padding:15px" align="center">
                 <button name="submit_gssha" class="btn btn-success btn-large" type="submit">Select</button>
-                <input type="text" id="file_id" name="file_id" value= "{{c.file_id}}" style="display:none">
-                <input type="text" id="file_name" name="file_name" value="{{c.file_name}}" style="display:none">
-                <input type="text" id="file_url" name="file_url" value="{{c.file_url}}" style="display:none">
-                <input type="text" id="file_certtification" name="file_certification" value="{{c.file_certification}}" style="display:none">
+                <input type="text" id="file_id" name="file_id" value= "{{file_id}}" style="display:none">
+		    	<input type="text" id="file_name" name="file_name" value="{{file_name}}" style="display:none">
+		    	<input type="text" id="file_url" name="file_url" value="{{file_url}}" style="display:none">
+		    	<input type="text" id="file_certtification" name="file_certification" value="{{file_certification}}" style="display:none">
             </div>
         </form>
         <div style="padding:15px" align="center">
@@ -71,7 +74,7 @@
 {% endblock %}
 
 {% block scripts %}
-	{{ super() }}
+    {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	<script>
 		function changeMap(element, file_id, description, file_name, file_url, file_certification) {
@@ -92,5 +95,5 @@
 			TETHYS_EDIT_MAP.swapKmlService('/apps/gssha-index/get-mask-map/'+file_id);
 		};
 	</script>
-	{% resource 'ckanext_apps/js/tethys_map.js' %}
+    {% gizmo_dependencies %}
 {% endblock %}

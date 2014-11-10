@@ -1,4 +1,4 @@
-
+from .model import engine, SessionMaker, StreamGage, Base, Engine, Base, gsshapy_engine, shapefile_engine
 from gsshapy.orm import metadata as gsshapy_metadata
 
 
@@ -6,7 +6,6 @@ def init_primary(first_time):
     """
     An example persistent store initializer function
     """
-    from models.model import engine, SessionMaker, StreamGage, Base
 
     # Create tables
     Base.metadata.create_all(engine)
@@ -27,18 +26,15 @@ def init_primary(first_time):
 
 
 def init_gsshaidx_db(first_time):
-    from .models.jobs import Engine, Base
     #Create tables
     Base.metadata.create_all(Engine)
 
 
 def init_gsshapy_db(first_time):
-    from models.gsshapy_db import gsshapy_engine
     #Create tables
     gsshapy_metadata.create_all(gsshapy_engine)
 
 
 def init_shapefile_db(first_time):
-    from models.shapefile_db import shapefile_engine
     #Create tables
     gsshapy_metadata.create_all(shapefile_engine)
