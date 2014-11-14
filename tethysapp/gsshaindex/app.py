@@ -1,4 +1,4 @@
-from tethys_apps.base import TethysAppBase, PersistentStore, app_controller_maker
+from tethys_apps.base import TethysAppBase, PersistentStore, app_controller_maker, DatasetService
 
 
 class GSSHAIndex(TethysAppBase):
@@ -21,16 +21,19 @@ class GSSHAIndex(TethysAppBase):
 
         controllers = (AppController(name='home',
                                      url='gsshaindex',
-                                     controller='gsshaindex.controllers.home'
+                                     controller='gsshaindex.controllers.main.home'
                        ),AppController(name='secondpg',
                                      url='gsshaindex/{name}',
-                                     controller='gsshaindex.controllers.secondpg'
+                                     controller='gsshaindex.controllers.main.secondpg'
+                       ),AppController(name='info_by_id',
+                                     url='gsshaindex/info_by_id/{file_id}',
+                                     controller='gsshaindex.controllers.ajax.info_by_id'
                        # ),AppController(name='extract_gssha',
                        #               url='gsshaindex/{job_id}/extract-gssha',
                        #               controller='gsshaindex.controllers.extract_gssha'
                        ),AppController(name='get_mask_map',
                                      url='gsshaindex/get-mask-map/{file_id}',
-                                     controller='gsshaindex.controllers.get_mask_map'
+                                     controller='gsshaindex.controllers.main.get_mask_map'
                        # ),AppController(name='select_index',
                        #               url='gsshaindex/{job_id}/select-index',
                        #               controller='gsshaindex.controllers.select_index'
@@ -70,9 +73,9 @@ class GSSHAIndex(TethysAppBase):
                        # ),AppController(name='zip_file',
                        #               url='gsshaindex/{job_id}/zip-file',
                        #               controller='gsshaindex.controllers.zip_file'
-                       # ),AppController(name='status',
-                       #               url='gsshaindex/status',
-                       #               controller='gsshaindex.controllers.status'
+                       ),AppController(name='status',
+                                       url='gsshaindex/status',
+                                       controller='gsshaindex.controllers.main.status'
                        # ),AppController(name='job_status',
                        #               url='gsshaindex/{job_id}/job-status',
                        #               controller='gsshaindex.controllers.job-status'
@@ -113,3 +116,16 @@ class GSSHAIndex(TethysAppBase):
         )
 
         return stores
+
+    def dataset_services(self):
+        """
+        Add one or more dataset services
+        """
+        dataset_services = (DatasetService(name='gsshaindex_ciwweb',
+                                           type='ckan',
+                                           endpoint='http://ciwweb.chpc.utah.edu/api/3/action',
+                                           apikey='c9f477f0-118f-49f1-8d5a-b35757689c74'
+                                           ),
+        )
+
+        return dataset_services

@@ -5,12 +5,10 @@
 {% block app_navigation_items %}
   <li class="title">App Navigation</li>
   <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
-  <li><a href="">Past Results</a></li>
-  <li class="title">Steps</li>
-  <li><a href="">1. The First Step</a></li>
-  <li><a href="">2. The Second Step</a></li>
-  <li><a href="">3. The Third Step</a></li>
+  <li><a href="">Load New Models</a></li>
   <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">See Past Comparisons</a></li>
+<li class="separator"></li>
   <li><a href="">Get Started</a></li>
 {% endblock %}
 
@@ -20,9 +18,9 @@
       {% if model_list|length < 1 %}
       	<h1 class="heading_title">No GSSHA Models</h1>
       {% else %}
-      	<h1 class="heading_title">GSSHA Model: {{ model_list.0.name }}</h1>
-        <h4>Model Description</h4>
-	    <p id="description">{{ model_list.0.description }}</p>
+      	<h1 class="heading_title">GSSHA Model: {{ model_list.0.0 }}</h1>
+        <h4>Model Description:</h4>
+	    <p id="description">{{ model_list.0.0 }}</p>
 	  {% endif %}
       {% gizmo google_map google_map %}
     </div>
@@ -44,26 +42,12 @@
                 <ul class="nav nav-pills nav-stacked">
                     {% gizmo select_input select_model %}
                     {% for model in model_list %}
-                    <li {% if file_id == model.id %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model.id}}" onclick="changeMap(this, '{{model.id}}', '{{model.description}}', '{{model.name}}', '{{model.url}}', '{{model.certification}}');">{{model.name}}{% if model.certification == "True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
+                    <li {% if file_id == model.id %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model.id}}" onclick="changeMap(this, '{{model.id}}', '{{model.description}}', '{{model.name}}');">{{model.name}}{% if model.certification == "True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
                     {% endfor %}
                 </ul>
             </div>
         {% endif %}
     </div>
-    {% if model_list|length > 0 %}
-        <form action="{% url 'gsshaindex' %}" method="post">
-            <div style="padding:15px" align="center">
-                <button name="submit_gssha" class="btn btn-success btn-large" type="submit">Select</button>
-                <input type="text" id="file_id" name="file_id" value= "{{file_id}}" style="display:none">
-		    	<input type="text" id="file_name" name="file_name" value="{{file_name}}" style="display:none">
-		    	<input type="text" id="file_url" name="file_url" value="{{file_url}}" style="display:none">
-		    	<input type="text" id="file_certtification" name="file_certification" value="{{file_certification}}" style="display:none">
-            </div>
-        </form>
-        <div style="padding:15px" align="center">
-            <a href="{% url 'gsshaindex:status'%}" class="btn btn-info">See Past Comparisons</a>
-        </div>
-    {% endif %}
 
   </div>
 {% endblock %}
@@ -77,14 +61,12 @@
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	<script>
-		function changeMap(element, file_id, description, file_name, file_url, file_certification) {
+		function changeMap(element, file_id, description, file_name) {
 			$('.models').each(function(file_id){
 				$(this).removeClass('active')
 			});
 			$('#file_id').val(file_id);
 			$('#file_name').val(file_name);
-			$('#file_url').val(file_url);
-			$('#file_certification').val(file_certification);
 			$('.models').each(function(){
 				if ($(this).children('a').get(0).id == file_id){
 					$(this).addClass('active');

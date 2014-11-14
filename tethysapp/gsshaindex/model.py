@@ -46,11 +46,18 @@ class Jobs(Base):
 
     #Columns
     id = Column(Integer, primary_key=True)
-    name = Column(String)
-    created = Column(DateTime)
     user_id = Column(String)
+    original_name = Column(String)
+    original_id = Column(String)
+    original_url = Column(String)
+    original_description = Column(String)
+    original_certification = Column(String)
+    created = Column(DateTime)
+
     kml_url = Column(String)
+    #Maybe won't need original model
     original_model = Column(PickleType)
+
     new_model = Column(PickleType)
     current_kmls = Column(String)
     run_urls = Column(PickleType)
@@ -65,13 +72,17 @@ class Jobs(Base):
     both_max = Column(String)
     both_time = Column(String)
 
-    def __init__(self, name, user_id, original_model):
+    def __init__(self, name, user_id, original_description, original_id, original_url, original_certification):
 
         #Set default values
-        self.name = name
+        self.original_name = name
         self.created = datetime.now()
         self.user_id = user_id
-        self.original_model = original_model
+        self.original_id = original_id
+        self.original_description = original_description
+        self.original_url = original_url
+        self.original_certification = original_certification
+        self.original_model = {}
         self.new_model = {}
         self.run_urls = {}
         self.result_urls = {}
