@@ -26,11 +26,11 @@ class GSSHAIndex(TethysAppBase):
                                      url='gsshaindex/{name}',
                                      controller='gsshaindex.controllers.main.secondpg'
                        ),AppController(name='info_by_id',
-                                     url='gsshaindex/info_by_id/{file_id}',
+                                     url='gsshaindex/info-by-id/{file_id}',
                                      controller='gsshaindex.controllers.ajax.info_by_id'
-                       # ),AppController(name='extract_gssha',
-                       #               url='gsshaindex/{job_id}/extract-gssha',
-                       #               controller='gsshaindex.controllers.extract_gssha'
+                       ),AppController(name='extract_gssha',
+                                     url='gsshaindex/{job_id}/extract-gssha',
+                                     controller='gsshaindex.controllers.main.extract_gssha'
                        ),AppController(name='get_mask_map',
                                      url='gsshaindex/get-mask-map/{file_id}',
                                      controller='gsshaindex.controllers.main.get_mask_map'

@@ -12,7 +12,7 @@ app_package_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'teth
 ### Python Dependencies ###
 dependencies = [
                 "gsshapy>=2.0.0",
-                "sqlalchemy==0.7.8",
+                "sqlalchemy>=0.7.8",
                 "owslib",
                 "gsconfig"
 ]

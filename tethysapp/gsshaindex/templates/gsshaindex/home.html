@@ -7,8 +7,10 @@
   <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
   <li><a href="">Load New Models</a></li>
   <li class="separator"></li>
-  <li><a href="{% url 'gsshaindex:status'%}">See Past Comparisons</a></li>
-<li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Unsubmitted Models</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Completed Models</a></li>
+  <li class="separator"></li>
   <li><a href="">Get Started</a></li>
 {% endblock %}
 
@@ -20,9 +22,9 @@
       {% else %}
       	<h1 class="heading_title">GSSHA Model: {{ model_list.0.0 }}</h1>
         <h4>Model Description:</h4>
-	    <p id="description">{{ model_list.0.0 }}</p>
+	    <p id="description">{{ model_list.0.2 }}</p>
 	  {% endif %}
-      {% gizmo google_map google_map %}
+      {% gizmo editable_google_map google_map %}
     </div>
   </div>
 {% endblock %}
@@ -38,13 +40,8 @@
             <p>There are no GSSHA models. Please upload some to your datasets or ensure your models are labeled with "Model" as "GSSHA". </p>
         {% else %}
             <p>Below is a list of GSSHA models stored in the datasets. Please select which one you would like to edit.</p>
-            <div id="models-div" style="height:400px;overflow-y:auto">
-                <ul class="nav nav-pills nav-stacked">
+            <div id="selector-div">
                     {% gizmo select_input select_model %}
-                    {% for model in model_list %}
-                    <li {% if file_id == model.id %}class="models active"{% else %} class="models" {% endif %}><a href="javascript:void(0);" id="{{model.id}}" onclick="changeMap(this, '{{model.id}}', '{{model.description}}', '{{model.name}}');">{{model.name}}{% if model.certification == "True" %}<img style="height:20px; display:block; padding-top:10px;" src="/gsshaindex/images/verified_long.jpg">{%endif%}</a></li>
-                    {% endfor %}
-                </ul>
             </div>
         {% endif %}
     </div>
@@ -58,24 +55,24 @@
 {% endblock %}
 
 {% block scripts %}
+    {% gizmo_dependencies css %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    {% gizmo_dependencies js %}
 	<script>
-		function changeMap(element, file_id, description, file_name) {
-			$('.models').each(function(file_id){
-				$(this).removeClass('active')
-			});
-			$('#file_id').val(file_id);
-			$('#file_name').val(file_name);
-			$('.models').each(function(){
-				if ($(this).children('a').get(0).id == file_id){
-					$(this).addClass('active');
-					$('#description').text(description);
-					$('.heading_title').text("GSSHA Model: "+$(element).text())
-				};
-			});
-			TETHYS_EDIT_MAP.swapKmlService('/apps/gssha-index/get-mask-map/'+file_id);
-		};
+        $("#selector-div").on("change",function(e){
+            file_id = e.val;
+            console.log("FileID: " + file_id);
+            $.ajax({
+                url: "info-by-id/"+file_id
+            }).done(function(data){
+                description = data.description;
+                $('#description').text(description);
+                name = data.name;
+                $('.heading_title').text("GSSHA Model: " + name);
+            });
+            TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/get-mask-map/'+file_id);
+        });
+
 	</script>
-    {% gizmo_dependencies %}
 {% endblock %}

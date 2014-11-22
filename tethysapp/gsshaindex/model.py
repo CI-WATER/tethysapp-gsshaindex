@@ -58,7 +58,8 @@ class Jobs(Base):
     #Maybe won't need original model
     original_model = Column(PickleType)
 
-    new_model = Column(PickleType)
+    new_model_name = Column(String)
+    new_model_id = Column(String)
     current_kmls = Column(String)
     run_urls = Column(PickleType)
     run_date = Column(DateTime)
@@ -76,17 +77,12 @@ class Jobs(Base):
 
         #Set default values
         self.original_name = name
-        self.created = datetime.now()
         self.user_id = user_id
         self.original_id = original_id
         self.original_description = original_description
         self.original_url = original_url
         self.original_certification = original_certification
         self.original_model = {}
-        self.new_model = {}
         self.run_urls = {}
         self.result_urls = {}
-        self.status = "pending"
-
-    def __repr__(self):
-        return "Id: ('%s'), name: ('%s'), user_id: ('%s'), status: ('%s'), kml_url: ('%s'), original model: ('%s'), new model: ('%s'), current kmls: ('%s'), run urls: ('%s'), run date: ('%s'), new name ('%s'), result urls ('%s')" % (self.id, self.name, self.user_id, self.status, self,kml_url, self.original_model, self.new_model, self.current_kmls, self.run_urls, self.run_date, self.new_name, self.result_urls)
+        self.status = "new"
