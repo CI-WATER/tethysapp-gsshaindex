@@ -86,3 +86,6 @@ class Jobs(Base):
         self.run_urls = {}
         self.result_urls = {}
         self.status = "new"
+
+    def __repr__(self):
+        return "You've got a job"

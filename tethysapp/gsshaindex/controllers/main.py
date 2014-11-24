@@ -1,5 +1,6 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.contrib import messages
+from django.core.urlresolvers import reverse
 import operator, random, pickle, pprint, zipfile, time, ConfigParser, os, json
 from gsshapy.orm import *
 from gsshapy.lib import db_tools as dbt
@@ -8,6 +9,8 @@ from tethys_apps.utilities import get_dataset_engine
 from ..app import GSSHAIndex
 import tethysapp.gsshaindex.lib as gi_lib
 from ..lib import raster2pgsql_path, maps_api_key
+from datetime import datetime, date
+from mapkit.ColorRampGenerator import ColorRampEnum
 
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
@@ -26,18 +29,20 @@ def home(request):
     present = gi_lib.check_package('gssha-models', CKAN_engine)
 
     # Check if the submit button has been clicked and if there is a file_id
-    ##### NEED TO CHANGE THE STATUS TO PENDING from new
-    if ('submit_gssha' in request.POST):
+    if ('file_id' in request.POST):
         params = request.POST
-        print params
         file_id = params['file_id']
-
         if file_id == "":
             messages.error(request, 'No GSSHA Model is selected')
         else:
-            context['file_id']=file_id
-            return render(request, 'gsshaindex/extract-gssha', context)
-
+            job,success = gi_lib.get_new_job(file_id,user,session)
+            job.status = "pending"
+            date = datetime.now()
+            formatted_date = '{:%Y-%m-%d-%H-%M-%S}'.format(date)
+            new_id = file_id + "-" + formatted_date
+            job.original_id = new_id
+            session.commit()
+            return redirect(reverse('gsshaindex:extract_gssha', kwargs={'job_id':new_id}))
 
     # Find all the GSSHA models in the datasets
     results = CKAN_engine.get_dataset('gssha-models')
@@ -54,7 +59,7 @@ def home(request):
         for result in resources:
             file_id = result.get('id')
             # Check to see if the files are already in the database and add them if they aren't
-            job,success = gi_lib.get_job(file_id,user,session)
+            job,success = gi_lib.get_new_job(file_id,user,session)
             if success == False:
                 if result['description'] == "":
                     file_description = "None"
@@ -113,7 +118,7 @@ def get_mask_map(request, file_id):
 
     session = jobs_sessionmaker()
     user = str(request.user)
-    job, success = gi_lib.get_job(file_id, user,session)
+    job, success = gi_lib.get_new_job(file_id, user,session)
 
     print job.kml_url
 
@@ -172,6 +177,8 @@ def get_mask_map(request, file_id):
 
             mask_map_dataset = gi_lib.check_dataset("mask-maps", CKAN_engine)
 
+            # mask_map_dataset = mask_map_dataset['result']['results'][0]['id']
+
             # Add mask kml to CKAN for viewing
             resource, success = gi_lib.add_kml_CKAN(mask_map_dataset, CKAN_engine, kml_file, kml_name)
 
@@ -187,10 +194,10 @@ def extract_gssha(request, job_id):
     '''
     This takes the file name and id that were submitted and unzips the files, finds the index maps, and creates kmls.
     '''
-
+    context = {}
     user = str(request.user)
     session = jobs_sessionmaker()
-    job, success = gi_lib.get_job(job_id, user,session)
+    job, success = gi_lib.get_pending_job(job_id, user,session)
     CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Specify the workspace
@@ -206,7 +213,7 @@ def extract_gssha(request, job_id):
 
     # Get url for the resource and extract the GSSHA file
     url = job.original_url
-    extract_path, unique_dir = extract_zip_from_url(user, url, userDir)
+    extract_path, unique_dir = gi_lib.extract_zip_from_url(user, url, userDir)
 
     # Create GSSHAPY Session
     gsshapy_session = gsshapy_sessionmaker()
@@ -242,7 +249,7 @@ def extract_gssha(request, job_id):
     for current_index in index_list:
         # Create kml file name and path
         current_time = time.strftime("%Y%m%dT%H%M%S")
-        resource_name = current_index.name + "_" + str(user_id) + "_" + current_time
+        resource_name = current_index.name + "_" + str(user) + "_" + current_time
         kml_ext = resource_name + '.kml'
         clusterFile = os.path.join(indexMapDir, kml_ext)
 
@@ -266,7 +273,102 @@ def extract_gssha(request, job_id):
 
     context['job_id'] = job_id
 
-    return render(request, 'gsshaindex/home.html', context)
+    return redirect(reverse('gsshaindex:select_index', kwargs={'job_id':job_id}))
+
+
+def select_index(request, job_id):
+    """
+    Controller for the app home page.
+    """
+    context = {}
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    # Get list of shapefiles
+    shapefile_list = get_resource_by_field_value('model:Shapefile')
+    if len(shapefile_list.get('results')) == 0:
+        shapefile_id = "NONE"
+    else:
+        shapefile_id = shapefile_list.get('results')[0]['id']
+    print shapefile_id
+
+    # Give options for editing the index map
+    if ('select_index' in request.POST):
+        params = request.POST
+        map_name = params['index_name']
+        if (params['method'] == "Create polygons"):
+            redirect(t.url_for('gsshaindex-edit-index', map_name=map_name, job_id=job_id))
+        elif (params['method'] == "Download shapefile"):
+#                 h.flash_error("Select by polygon is currently in production and hasn't been initialized yet.")
+            redirect(t.url_for('gsshaindex-shapefile-index', map_name=map_name, job_id=job_id, shapefile_id = shapefile_id))
+        elif (params['method'] == "Merge index maps"):
+            redirect(t.url_for('gsshaindex-combine-index', map_name=map_name, job_id=job_id))
+
+    print "CERTIFICATION", job.original_certification
+
+    # Get list of index files
+    resource_kmls = json.loads(job.current_kmls)
+
+    # Create arrays of the names and urls
+    resource_name = []
+    resource_url = []
+    for key in resource_kmls:
+        resource_name.append(key)
+        resource_url.append(resource_kmls[key]['url'])
+
+    # Set the first index as the active one
+    map_name = str(resource_name[0])
+
+    #Create session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Use project id to link to map table file
+    project_file = gsshapy_session.query(ProjectFile).filter(ProjectFile.id == project_file_id).one()
+    index_raster = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == map_name).one()
+    indices = index_raster.indices
+
+
+    # Set up map properties
+    editable_map = {'height': '600px',
+                    'width': '100%',
+                    # 'reference_kml_action': '/apps/gssha-index/get-index-maps/' + c.job_id + '/' + c.map_name,
+                    'maps_api_key':maps_api_key,
+                    'drawing_types_enabled':[]}
+
+    context['shapefile_list'] = shapefile_list
+    context['editable_map'] = editable_map
+    context['project_name'] = job.original_name
+    context['resource_name'] = resource_name
+    context['map_name'] = map_name
+    context['job_id'] = job_id
+
+    return render(request, 'gsshaindex/namepg.html', context)
+
+
+def get_index_maps(request, job_id, index_name):
+    '''
+    This action is used to pass the kml data to the google map. It must return the key 'kml_link'.
+    '''
+    # Get the job id and user id
+    job_id = job_id
+    index_name = map_name
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Get the list of index files to display
+    resource_list = json.loads(job.current_kmls)
+
+    # Get the kml url
+    kml_links = resource_list[map_name]['url']
+
+    return JsonResponse({'kml_links': kml_links})
 
 
 def secondpg(request, name):

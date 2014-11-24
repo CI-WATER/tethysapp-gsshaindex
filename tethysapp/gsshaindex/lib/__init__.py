@@ -8,6 +8,8 @@ from owslib.wps import monitorExecution
 from mapkit.ColorRampGenerator import ColorRampEnum
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
 from gsshapy.orm import ProjectFile
+from datetime import datetime
+from os import path
 
 # Get app.ini
 gsshaindex_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -41,7 +43,7 @@ def check_package(name, engine):
 
     return present
 
-def get_job(job_id, user_id, session):
+def get_new_job(job_id, user_id, session):
     # Get the job and project file id from the database
     success = True
 
@@ -50,6 +52,21 @@ def get_job(job_id, user_id, session):
                     filter(Jobs.user_id == user_id).\
                     filter(Jobs.original_id == job_id).\
                     filter(Jobs.status == "new").one()
+        return job, success
+    except:
+        success = False
+        job = ""
+        return job, success
+
+def get_pending_job(job_id, user_id, session):
+    # Get the job and project file id from the database
+    success = True
+
+    try:
+        job = session.query(Jobs).\
+                    filter(Jobs.user_id == user_id).\
+                    filter(Jobs.original_id == job_id).\
+                    filter(Jobs.status == "pending").one()
         return job, success
     except:
         success = False
@@ -135,8 +152,38 @@ def add_kml_CKAN(dataset, CKAN_engine, kml_file, kml_name):
     kml_name = the name of the kml file
     '''
 
-    print dataset['result']['results'][0]['id']
+    print dataset
     result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=kml_name, file=kml_file, format="kml")
 
 
     return result['result'], result['success']
+
+
+def extract_zip_from_url(user_id, download_url, workspace):
+    '''
+    Extract zip directory to workspace in a directory
+    with a unique name consisting of a timestamp and user id.
+
+    user_id =  id of user performing operation
+    download_url = url where zip archive can be downloaded
+    workspace = location to extract file
+
+    returns extract_path
+    '''
+    # Setup workspace
+    time_stamp = datetime.isoformat(datetime.now()).split('.')[0]
+
+    # Replace chars
+    for char in (':', '-', 'T'):
+        time_stamp = time_stamp.replace(char, '')
+
+    normalized_id = user_id.replace('-', '')
+    unique_dir = ''.join((time_stamp, normalized_id))
+
+    # Extract
+    extract_path = path.join(workspace, unique_dir)
+    zip_file = urllib2.urlopen(download_url)
+    zf = zipfile.ZipFile(StringIO.StringIO(zip_file.read()))
+    zf.extractall(extract_path)
+
+    return extract_path, unique_dir

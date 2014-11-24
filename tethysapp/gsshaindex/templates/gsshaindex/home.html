@@ -36,21 +36,26 @@
       Select a Model
     </h2>
     <div class="module-content">
+        <form id="extract_file" method="post" action="{% url 'gsshaindex:home' %}">
+        {% csrf_token %}
         {% if model_list|length < 1 %}
             <p>There are no GSSHA models. Please upload some to your datasets or ensure your models are labeled with "Model" as "GSSHA". </p>
+            <input id="file_id" type="text" name="file_id" value="" style="display:none">
         {% else %}
             <p>Below is a list of GSSHA models stored in the datasets. Please select which one you would like to edit.</p>
             <div id="selector-div">
-                    {% gizmo select_input select_model %}
+                {% gizmo select_input select_model %}
             </div>
+            <input id="file_id" type="text" name="file_id" value={{model_list.0.1}} style="display:none">
         {% endif %}
+        </form>
     </div>
 
   </div>
 {% endblock %}
 
 {% block app_actions %}
-  <a href="{% url 'gsshaindex:secondpg' name='bob' %}" class="btn btn-default">Next</a>
+  <input type="submit" form="extract_file" class="btn btn-default" value="Next"/>
   <a href="" class="btn btn-default">Back</a>
 {% endblock %}
 
@@ -62,6 +67,7 @@
 	<script>
         $("#selector-div").on("change",function(e){
             file_id = e.val;
+            $('#file_id').val(file_id);
             console.log("FileID: " + file_id);
             $.ajax({
                 url: "info-by-id/"+file_id
@@ -73,6 +79,5 @@
             });
             TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/get-mask-map/'+file_id);
         });
-
 	</script>
 {% endblock %}
