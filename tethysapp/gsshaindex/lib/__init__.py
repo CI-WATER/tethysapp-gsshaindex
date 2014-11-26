@@ -137,10 +137,9 @@ def check_dataset(name, CKAN_engine):
     dataset = CKAN_engine.search_datasets({'name': name})
 
     if dataset['result']['count'] == 0:
-        print("It's not here")
-        dataset = CKAN_engine.create_dataset(name, console=True)
+        dataset = CKAN_engine.create_dataset(name)
     else:
-        print("It's here")
+        pass
 
     return dataset
 
@@ -152,9 +151,7 @@ def add_kml_CKAN(dataset, CKAN_engine, kml_file, kml_name):
     kml_name = the name of the kml file
     '''
 
-    print dataset
     result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=kml_name, file=kml_file, format="kml")
-
 
     return result['result'], result['success']
 

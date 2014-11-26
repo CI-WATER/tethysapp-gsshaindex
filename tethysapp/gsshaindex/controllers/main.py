@@ -290,11 +290,14 @@ def select_index(request, job_id):
     project_file_id = job.new_model_id
 
     # Get list of shapefiles
-    shapefile_list = get_resource_by_field_value('model:Shapefile')
-    if len(shapefile_list.get('results')) == 0:
+    shapefile_dataset = gi_lib.check_dataset('shapefiles', CKAN_engine)
+    shapefile_search = CKAN_engine.search_datasets({'id':shapefile_dataset['result']['results'][0]['id']})
+    shapefile_list =  shapefile_search['result']['results'][0]['resources']
+    print "SHAPEFILES: ",shapefile_list
+    if len(shapefile_list) == 0:
         shapefile_id = "NONE"
     else:
-        shapefile_id = shapefile_list.get('results')[0]['id']
+        shapefile_id = shapefile_list[0]['id']
     print shapefile_id
 
     # Give options for editing the index map
@@ -341,7 +344,7 @@ def select_index(request, job_id):
                     'drawing_types_enabled':[]}
 
     context['shapefile_list'] = shapefile_list
-    context['editable_map'] = editable_map
+    context['google_map'] = editable_map
     context['project_name'] = job.original_name
     context['resource_name'] = resource_name
     context['map_name'] = map_name

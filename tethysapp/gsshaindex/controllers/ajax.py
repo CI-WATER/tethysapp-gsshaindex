@@ -7,6 +7,6 @@ def info_by_id(request, file_id):
 
     session = jobs_sessionmaker()
     user = str(request.user)
-    job, success = gi_lib.get_job(file_id, user,session)
+    job, success = gi_lib.get_new_job(file_id, user, session)
 
     return JsonResponse({"description":job.original_description, "name":job.original_name})
