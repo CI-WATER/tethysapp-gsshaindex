@@ -14,59 +14,63 @@
   <li><a href="">Get Started</a></li>
 {% endblock %}
 
+{% block modal_block %}
+  <form action="{% url 'gsshaindex:select_index' job_id=job_id %}" method="post">
+      {% csrf_token %}
+        <div id="edit_method" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="edit_methodLabel" aria-hidden="true">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Method to Edit</h3>
+                  </div>
+                  <div class="modal-body">
+                    <p>Select which method you would like to use to edit the index map</p>
+                    <label>Editing method</label>
+                    <select name="method">
+                        <option id="option1">Create polygons</option>
+                        <option id="option2">Download shapefile</option>
+                        <option id="option3">Merge index maps</option>
+                    </select>
+                    <input type="text" id="index_name" name="index_name" value= {{map_name}} style="display:none">
+                    <p id="editing_description">Manually draw polygons to change the index maps.</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                    <button class="btn btn-primary" type="submit" name="select_index">Continue</button>
+                  </div>
+              </div>
+          </div>
+        </div>
+  </form>
+  <form action="{% url 'gsshaindex:zip_file' job_id=job_id %}" method="post">
+      {% csrf_token %}
+        <div id="submit_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="submit_modalLabel" aria-hidden="true">
+          <div class="modal-header">
+            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+            <h3>Ready to Submit?</h3>
+          </div>
+          <div class="modal-body">
+            <p>If you are done editing the index maps and are ready to submit the GSSHA model to be run, please specify a name and description. Otherwise, return and finish editing.</p>
+            <label>New file name</label>
+            <input name="new_name" class="span6" type="text" value="{{project_name}} (modified)">
+            <label>New file description</label>
+            <textarea name="new_description" class="span6" rows="4"></textarea>
+          </div>
+          <div class="modal-footer">
+            <button class="btn" data-dismiss="modal" aria-hidden="true">Return to Edit</button>
+            <button class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
+          </div>
+        </div>
+  </form>
+{% endblock %}
+
 {% block primary_content %}
-  <div class="module">
-    <div class="module-content">
-      <form action="{% url_for 'gsshaindex-select-index', job_id=job_id %}" method="post">
-			<div id="edit_method" class="modal hide fade" tabindex="-1" role="dialog" aria-hidden="true">
-			  <div class="modal-header">
-			    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			    <h3 id="submit_modalLabel">Method to Edit</h3>
-			  </div>
-			  <div class="modal-body">
-			    <p>Select which method you would like to use to edit the index map</p>
-			  	<label>Editing method</label>
-			  	<select name="method">
-			  		<option id="option1">Create polygons</option>
-			  		<option id="option2">Download shapefile</option>
-			  		<option id="option3">Merge index maps</option>
-			  	</select>
-			  	<input type="text" id="index_name" name="index_name" value= {{c.map_name}} style="display:none">
-			  	<p id="editing_description">Manually draw polygons to change the index maps.</p>
-			  </div>
-			  <div class="modal-footer">
-			    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-			    <button class="btn btn-primary" type="submit" name="select_index">Continue</button>
-			  </div>
-			</div>
-	  </form>
-      <form action="{% url_for 'gsshaindex-zip-file', job_id=job_id %}" method="post">
-	    	<div id="submit_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="submit_modalLabel" aria-hidden="true">
-			  <div class="modal-header">
-			    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-			    <h3 id="submit_modalLabel">Ready to Submit?</h3>
-			  </div>
-			  <div class="modal-body">
-			    <p>If you are done editing the index maps and are ready to submit the GSSHA model to be run, please specify a name and description. Otherwise, return and finish editing.</p>
-			  	<label>New file name</label>
-			  	<input name="new_name" class="span6" type="text" value="{{c.project_name}} (modified)">
-			  	<label>New file description</label>
-			  	<textarea name="new_description" class="span6" rows="4"></textarea>
-			  </div>
-			  <div class="modal-footer">
-			    <button class="btn" data-dismiss="modal" aria-hidden="true">Return to Edit</button>
-			    <button class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
-			  </div>
-			</div>
-	  </form>
       <h1 class="heading_title">Index Map: {{map_name}}</h1>
       {% gizmo editable_google_map google_map %}
-    </div>
-  </div>
 {% endblock %}
 
 {% block secondary_content %}
-   <div class="module module-narrow module-shallow">
     <h2 class="module-heading">
       <i class="icon-globe"></i>
       Select an Index File
@@ -79,27 +83,17 @@
             <div id="indices-div" style="height:400px;overflow-y:auto">
 	    		<ul class="nav nav-pills nav-stacked">
 		    		{% for name in resource_name %}
-			    		<li {% if name==map_name %}class="indices active"{% else %}class="indices"{% endif %}><a href="javascript:void(0);" id="{{name}}"onclick="changeMap(this, '{{name}}', '{{job_id}}');">{{ name }}</a></li>
+			    		<li {% if name == map_name %}class="indices active"{% else %}class="indices"{% endif %} ><a href="javascript:void(0);" id="{{name}}"onclick="changeMap(this, '{{name}}', '{{job_id}}');">{{ name }}</a></li>
 		    		{% endfor %}
     			</ul>
     		</div>
-		    <div style="padding:15px" align="center">
-		    	<a href="#edit_method" role="button" class="btn btn-primary" data-toggle="modal">Edit Selected Index Map</a>
-
-		    </div>
-		    <div style="padding:25px" align="center">
-		    	<a href="#submit_modal" role="button" class="btn btn-success" data-toggle="modal">Submit New GSSHA File for Comparison</a>
-    		</div>
         {% endif %}
     </div>
-
-  </div>
 {% endblock %}
 
 {% block app_actions %}
   <a href="#submit_modal" role="button" class="btn btn-success" data-toggle="modal">Submit New GSSHA File for Comparison</a>
-  <a href="#edit_method" role="button" class="btn btn-default" data-toggle="modal">Edit Selected Index Map</a>
-  <a href="" class="btn btn-default">Back</a>
+  <button data-target="#edit_method" type="button" class="btn btn-default" data-toggle="modal">Edit Selected Index Map</button>
 {% endblock %}
 
 {% block scripts %}
@@ -118,7 +112,7 @@
 					$(this).addClass('active');
 				};
 			});
-			TETHYS_EDIT_MAP.swapKmlService('/apps/gssha-index/get-index-maps/'+job_id+'/'+map_name);
+			TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
 		};
 
 		$("select").change(function(){

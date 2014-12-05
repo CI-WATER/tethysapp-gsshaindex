@@ -1,0 +1,10 @@
+.modal-backdrop {
+  // position: absolute;
+  display: none;
+
+}
+
+.modal {
+  z-index: 1200;
+  top: 40%;
+}

@@ -20,15 +20,19 @@
 {% block app_navigation_items %}
 {% endblock %}
 
+{% block flash %}
+    {{ block.super }}{% block modal_block %}{% endblock %}
+{% endblock %}
+
 {% block app_content %}
-<div class="row">
-	<div class="col-md-3">
-		{% block secondary_content %}{% endblock %}
-	</div>
-	<div class="col-md-9">
-		{% block primary_content %}{% endblock %}
-	</div>
-</div>
+    <div class="row">
+        <div class="col-md-3">
+            {% block secondary_content %}{% endblock %}
+        </div>
+        <div class="col-md-9">
+            {% block primary_content %}{% endblock %}
+        </div>
+    </div>
 {% endblock %}
 
 {% block app_actions %}

@@ -253,7 +253,7 @@ def extract_gssha(request, job_id):
         kml_ext = resource_name + '.kml'
         clusterFile = os.path.join(indexMapDir, kml_ext)
 
-         # Generate color ramp
+        # Generate color ramp
         current_index.getAsKmlClusters(session=gsshapy_session,
                                        path = clusterFile,
                                        colorRamp = ColorRampEnum.COLOR_RAMP_HUE,
@@ -283,7 +283,7 @@ def select_index(request, job_id):
     context = {}
     user = str(request.user)
     session = jobs_sessionmaker()
-    job, success = gi_lib.get_pending_job(job_id, user,session)
+    job, success = gi_lib.get_pending_job(job_id, user, session)
     CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Get project file id
@@ -291,6 +291,7 @@ def select_index(request, job_id):
 
     # Get list of shapefiles
     shapefile_dataset = gi_lib.check_dataset('shapefiles', CKAN_engine)
+    id = shapefile_dataset['result']['results'][0]['id']
     shapefile_search = CKAN_engine.search_datasets({'id':shapefile_dataset['result']['results'][0]['id']})
     shapefile_list =  shapefile_search['result']['results'][0]['resources']
     print "SHAPEFILES: ",shapefile_list
@@ -305,12 +306,13 @@ def select_index(request, job_id):
         params = request.POST
         map_name = params['index_name']
         if (params['method'] == "Create polygons"):
-            redirect(t.url_for('gsshaindex-edit-index', map_name=map_name, job_id=job_id))
+            return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':map_name}))
         elif (params['method'] == "Download shapefile"):
-#                 h.flash_error("Select by polygon is currently in production and hasn't been initialized yet.")
-            redirect(t.url_for('gsshaindex-shapefile-index', map_name=map_name, job_id=job_id, shapefile_id = shapefile_id))
+            messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
+            # return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'map_name':map_name,'shapefile_id':shapefile_id}))
         elif (params['method'] == "Merge index maps"):
-            redirect(t.url_for('gsshaindex-combine-index', map_name=map_name, job_id=job_id))
+            messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
+            # return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'map_name':map_name}))
 
     print "CERTIFICATION", job.original_certification
 
@@ -335,11 +337,10 @@ def select_index(request, job_id):
     index_raster = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == map_name).one()
     indices = index_raster.indices
 
-
     # Set up map properties
     editable_map = {'height': '600px',
                     'width': '100%',
-                    # 'reference_kml_action': '/apps/gssha-index/get-index-maps/' + c.job_id + '/' + c.map_name,
+                    'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-index-maps/'  + map_name,
                     'maps_api_key':maps_api_key,
                     'drawing_types_enabled':[]}
 
@@ -350,7 +351,8 @@ def select_index(request, job_id):
     context['map_name'] = map_name
     context['job_id'] = job_id
 
-    return render(request, 'gsshaindex/namepg.html', context)
+    # return render(request, 'gsshaindex/namepg.html', context)
+    return render(request, 'gsshaindex/select_index.html', context)
 
 
 def get_index_maps(request, job_id, index_name):
@@ -359,7 +361,7 @@ def get_index_maps(request, job_id, index_name):
     '''
     # Get the job id and user id
     job_id = job_id
-    index_name = map_name
+    map_name = index_name
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user,session)
@@ -371,7 +373,7 @@ def get_index_maps(request, job_id, index_name):
     # Get the kml url
     kml_links = resource_list[map_name]['url']
 
-    return JsonResponse({'kml_links': kml_links})
+    return JsonResponse({'kml_links': [kml_links]})
 
 
 def secondpg(request, name):
@@ -386,6 +388,14 @@ def secondpg(request, name):
 
     return render(request, 'gsshaindex/namepg.html', context)
 
+def mapping_table(request):
+    context = {}
+    return render(request, 'gsshaindex/namepg.html', context)
 
 def status(request):
+    context = {}
+    return render(request, 'gsshaindex/namepg.html', context)
+
+def zip_file(request, job_id):
+    context = {}
     return render(request, 'gsshaindex/namepg.html', context)

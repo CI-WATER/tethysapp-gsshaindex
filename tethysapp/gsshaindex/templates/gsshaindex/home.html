@@ -15,8 +15,6 @@
 {% endblock %}
 
 {% block primary_content %}
-  <div class="module">
-    <div class="module-content">
       {% if model_list|length < 1 %}
       	<h1 class="heading_title">No GSSHA Models</h1>
       {% else %}
@@ -25,8 +23,6 @@
 	    <p id="description">{{ model_list.0.2 }}</p>
 	  {% endif %}
       {% gizmo editable_google_map google_map %}
-    </div>
-  </div>
 {% endblock %}
 
 {% block secondary_content %}
