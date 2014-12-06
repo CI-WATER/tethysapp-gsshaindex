@@ -152,9 +152,12 @@ def submit_edits(request, job_id, index_name):
         index_raster_indices = index_raster.indices
         index_present = False
         for index in index_raster_indices:
+            print index
             if int(index.index) == int(value):
                 index_present = True
                 break
+
+        print "Index Present? ", index_present
 
         # Create new index value if it doesn't exist and add change the number of ids
         if index_present == False:

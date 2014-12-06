@@ -20,7 +20,7 @@
         {% csrf_token %}
         {% gizmo editable_google_map google_map %}
     </form>
-    <form id="description_edits" method="post" action="{% url 'gsshaindex:mapping_table' index_name=index_name job_id=job_id mapping_table="0" %}">
+    <form id="description_edits" method="post" action="{% url 'gsshaindex:mapping_table' index_name=index_name job_id=job_id mapping_table_number="0" %}">
         {% csrf_token %}
 		  <table class="table table-striped">
 		  	<thead>
@@ -48,8 +48,8 @@
     	<p>Draw polygons over locations of the index map that are changing and assign the areas ids. Click "Update Map" after drawing to update the index map and click "Next" after adding descriptions to continue and edit the mapping table.</p>
     	<form name="submit_updates" method="post" action="{% url 'gsshaindex:submit_edits' index_name=index_name job_id=job_id %}">
             {% csrf_token %}
-	    	<div style="padding:80px 15px 15px 15px" align="center">
-	    		<button class="btn btn-primary" type="submit" name="editable_map_submit" form="map_edits">Update Map</button>
+	    	<div style="padding:50px 15px 15px 15px" align="center">
+	    		<button class="btn btn-primary" type="submit" name="editable_map_submit" form="map_edits">Save Changes</button>
 	    	</div>
     	</form>
     </div>
@@ -58,7 +58,6 @@
 
 {% block app_actions %}
   <input type="submit" form="description_edits" class="btn btn-default" value="Next"/>
-  <a href="" class="btn btn-default">Back</a>
 {% endblock %}
 
 {% block scripts %}
