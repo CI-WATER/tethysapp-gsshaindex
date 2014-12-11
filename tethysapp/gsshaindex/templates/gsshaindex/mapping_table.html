@@ -28,18 +28,18 @@
 		  		</thead>
 		  		<form method="post" id="submit_form" action="{% url 'gsshaindex:replace_values' index_name=index_name job_id=job_id mapping_table_number=mapping_table_number %}">
 			  		{% csrf_token %}
-                    {% for i in num_indices %}
                     {% for row in values %}
 			  			<tr>
-			  				<td colspan="1">{{ indices.i.0 }}</td>
-				  			<td colspan="3">{{ indices.i.description1 }}</td>
-				  			<td colspan="3">{{ indices.i.description2 }}</td>
+							{% with index=indices|return_item:forloop.counter0 %}
+			  				<td colspan="1">{{ index.0 }}</td>
+				  			<td colspan="3">{{ index.description1 }}</td>
+				  			<td colspan="3">{{ index.description2 }}</td>
+							{% endwith %}
 			  			{% for var in row %}
 					  		<td colspan="2"><input type="text" class="span1" name="var-{{var.id}}" value="{{ var.value }}"></td>
 					  	{% endfor %}
 				  		</tr>
                     {% endfor %}
-			  		{% endfor %}
 			  	</form>
 			</table>
 {% endblock %}
@@ -48,7 +48,7 @@
     <h2>Edit Index Mapping Table Values</h2>
     <div class="module-content">
     	<p>Below is a list of mapping tables you can edit that are related to this index map. After making changes to the values, click "Save Edits". Then click "Next" to continue and review the mapping tables.</p>
-    	<div id="indices-div" style="height:240px">
+    	<div id="indices-div" style="height:150px">
 	    	<ul class="nav nav-pills nav-stacked">
 	    		{% for map in mapTables %}
 				<li {% if map.2 == mapping_table_number %}class="active"{% else %}class=""{% endif %}><a style="word-wrap: break-word" href="{% url 'gsshaindex:mapping_table' index_name=index_name job_id=job_id mapping_table_number=map.2 %}">{{map.0}}</a></li>

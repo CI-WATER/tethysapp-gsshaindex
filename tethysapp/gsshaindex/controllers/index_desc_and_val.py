@@ -42,7 +42,7 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
     mapping_table_number = int(mapping_table_number)
 
     # Process for if descriptions are submitted
-    if ('submit_descriptions' in request.POST):
+    if (request.POST):
         params = request.POST
         for key in params:
             if "indice" in key:
@@ -51,7 +51,7 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                     mapDesc1 = gsshapy_session.query(MTIndex).get(identity)
                     mapDesc1.description1 = params[key]
 
-                else:
+                elif "desc2" in key:
                     identity = key.replace("indice-desc2-","")
                     mapDesc2 = gsshapy_session.query(MTIndex).get(identity)
                     mapDesc2.description2 = params[key]
@@ -116,13 +116,6 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                       'kml_service': '/apps/gsshaindex/' + job_id + '/get-index-maps/' + index_name,
                       'maps_api_key':maps_api_key}
 
-    num_indices = []
-    i=0
-    for indice in indices:
-        num_indices.append(i)
-        i += 1
-    print num_indices
-
     context['indices'] = indices
     context['job_id'] = job_id
     context['index_name'] = index_name
@@ -134,15 +127,133 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
     context['variables'] = variables
     context['google_map'] = google_map
     context['values'] = zipValues
-    context['num_indices'] = [num_indices]
 
     return render(request, 'gsshaindex/mapping_table.html', context)
 
 
-def replace_values(request):
+def replace_values(request, job_id, index_name, mapping_table_number):
+    '''
+    This replaces the values for variables on the index map.
+    '''
     context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
 
-def submit_mapping_table(request):
+    # Get the user id and the project file id
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    #Create session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Use project id to link to map table file
+    project_file = gsshapy_session.query(ProjectFile).filter(ProjectFile.id == project_file_id).one()
+    index_raster = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
+    indices = index_raster.indices
+    mapTables = index_raster.mapTables
+
+    # Process for if descriptions are submitted
+    if (request.POST):
+        params = request.POST
+        for key in params:
+            if "var" in key:
+                identity = int(key.replace("var-",""))
+                mapTableValue = gsshapy_session.query(MTValue).get(identity)
+                mapTableValue.value = params[key]
+        gsshapy_session.commit()
+
+    context['job_id'] = job_id
+    context['index_name'] = index_name
+    context['mapping_table_number'] = mapping_table_number
+
+    return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':mapping_table_number}))
+
+
+def submit_mapping_table(request, job_id, index_name, mapping_table_number):
+    '''
+    This submits the mapping table and values for review.
+    '''
     context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
+
+    # Get the user id and the project file id
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    # Get list of index files
+    resource_kmls = json.loads(job.current_kmls)
+
+    #Create session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Use project id to link to map table file
+    project_file = gsshapy_session.query(ProjectFile).filter(ProjectFile.id == project_file_id).one()
+    index_raster = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
+    indices = index_raster.indices
+    mapTables = index_raster.mapTables
+
+    mapping_table_number = int(mapping_table_number)
+
+    # Find the associated map tables and add them to an array
+    assocMapTables = []
+    count = 0
+    for table in mapTables:
+        name =  str(table.name)
+        clean = name.replace("_"," ")
+        assocMapTables.append([clean, table.name, count])
+        count +=1
+
+    # Find the variables that are related to the active map table
+    distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
+                                 filter(MTValue.mapTable == mapTables[mapping_table_number]).\
+                                 order_by(MTValue.variable).\
+                                 all()
+
+    # Create an array of the variables in the active map table
+    variables = []
+    for var in distinct_vars:
+        variables.append(var[0])
+
+    # Cross tabulate manually to populate the mapping table information
+    indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.description1, MTIndex.description2).\
+                           join(MTValue).\
+                           filter(MTValue.mapTable == mapTables[mapping_table_number]).\
+                           order_by(MTIndex.index).\
+                           all()
+
+    # Get the values for the mapping table
+    var_values = []
+    for var in variables:
+        values = gsshapy_session.query(MTValue.id, MTValue.value).\
+                              join(MTIndex).\
+                              filter(MTValue.mapTable == mapTables[mapping_table_number]).\
+                              filter(MTValue.variable == var).\
+                              order_by(MTIndex.index).\
+                              all()
+        var_values.append(values)
+    arrayValues = zip(*var_values)
+
+    # Dictionary of properties for the map
+    google_map = {'height': '400px',
+                      'width': '100%',
+                      'kml_service': '/apps/gsshaindex/' + job_id+ '/get-index-maps/' + index_name,
+                      'maps_api_key':maps_api_key}
+
+    context['job_id'] = job_id
+    context['index_name'] = index_name
+    context['mapping_table_number'] = mapping_table_number
+    context['variables'] = variables
+    context['values'] = arrayValues
+    context['indices'] = indices
+    context['mapTables'] = assocMapTables
+    context['resource_kmls'] = resource_kmls
+    context['google_map'] = google_map
+
+    return render(request, 'gsshaindex/review_mapping_table.html', context)
