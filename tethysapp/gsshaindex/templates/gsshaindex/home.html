@@ -4,7 +4,7 @@
 
 {% block app_navigation_items %}
   <li class="title">App Navigation</li>
-  <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
   <li><a href="">Load New Models</a></li>
   <li class="separator"></li>
   <li><a href="{% url 'gsshaindex:status'%}">Unsubmitted Models</a></li>
@@ -28,7 +28,6 @@
 {% block secondary_content %}
    <div class="module module-narrow module-shallow">
     <h2 class="module-heading">
-      <i class="icon-globe"></i>
       Select a Model
     </h2>
     <div class="module-content">

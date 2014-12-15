@@ -184,3 +184,48 @@ def extract_zip_from_url(user_id, download_url, workspace):
     zf.extractall(extract_path)
 
     return extract_path, unique_dir
+
+def add_zip_GSSHA(dataset, GSSHA_file_path, CKAN_engine, GSSHA_file_name, new_description, date, user_id, *kwargs):
+
+    result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=GSSHA_file_name, file=GSSHA_file_path, format="zip", model="GSSHA", description=new_description + "  Modified on "+ date +" by "+ user_id)
+
+    return result['result'], result['success']
+
+def flyGssha(link,resultsFile):
+    '''
+    This function submits the link to the zipped GSSHA file and gets the result
+    '''
+    wps = WebProcessingService('http://ci-water.byu.edu:9999/wps/WebProcessingService', verbose=False, skip_caps=True)
+
+    processid = 'rungssha'
+    inputs = [('url', link)]
+
+    output = "outputfile"
+
+    execution = wps.execute(processid, inputs, output)
+
+    monitorExecution(execution)
+
+    result = execution.getOutput(resultsFile)
+
+    print "GSSHA has taken off!"
+
+
+def extract_otl (url, extract_path):
+    '''
+    This function finds the otl file from the zip file at the url and extracts it to a specified location
+    url = location of the zipped GSSHA file
+    extract_path = where the mask file should be extracted to
+    '''
+    # Find zip file at the url and find the mask file
+    zip_file = urllib2.urlopen(url)
+    zf = zipfile.ZipFile(StringIO.StringIO(zip_file.read()))
+    for file in zf.namelist():
+#         if file.startswith("Results"):
+            if file.endswith('.otl'):
+                otl_file=file
+
+    # Extract the mask file
+    zf.extract(otl_file, extract_path)
+
+    return otl_file

@@ -376,6 +376,216 @@ def get_index_maps(request, job_id, index_name):
     return JsonResponse({'kml_links': [kml_links]})
 
 
+def zip_file(request, job_id):
+    '''
+    This zips up the GSSHA files in preparation of their being run
+    '''
+    context = {}
+
+    # Get the job id and user id
+    job_id = job_id
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    project_file_id = job.new_model_id
+
+    # Get the name and description from the submission
+    params=request.POST
+    not_clean_name = params['new_name']
+    new_description = params['new_description']
+
+    # Reformat the name by removing bad characters
+    # bad_char = "',.<>()[]{}=+-/\"|:;\\^?!~`@#$%&* "
+    bad_char = "',.<>[]{}=+-/\"|:;\\^?!~`@#$%&*"
+    for char in bad_char:
+        new_name = not_clean_name.replace(char,"_")
+
+    #Create session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Get project from the database
+    projectFileAll = gsshapy_session.query(ProjectFile).get(project_file_id)
+
+    # Create name for files
+    project_name = projectFileAll.name
+    if project_name.endswith('.prj'):
+        project_name = project_name[:-4]
+    pretty_date= time.strftime("%A %B %d, %Y %I:%M:%S %p")
+
+    # Specify the workspace
+    controllerDir = os.path.abspath(os.path.dirname(__file__))
+    gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+    publicDir = os.path.join(gsshaindexDir,'public')
+    userDir = os.path.join(publicDir, str(user))
+    newFileDir = os.path.join(userDir, 'newFile')
+    writeFile = os.path.join(newFileDir, new_name)
+    zipPath = os.path.join(newFileDir, '.'.join((new_name,'zip')))
+
+    # Clear workspace folders
+    gi_lib.clear_folder(newFileDir)
+    gi_lib.clear_folder(writeFile)
+
+    # Get all the project files
+    projectFileAll.writeInput(session=gsshapy_session, directory=writeFile, name=new_name)
+
+    # Make a list of the project files
+    writeFile_list = os.listdir(writeFile)
+
+    # Add each project file to the zip folder
+    with zipfile.ZipFile(zipPath, "w") as gssha_zip:
+        for item in writeFile_list:
+            abs_path = os.path.join(writeFile, item)
+            archive_path = os.path.join(new_name, item)
+            gssha_zip.write(abs_path, archive_path)
+
+    GSSHA_dataset = gi_lib.check_dataset("gssha-models", CKAN_engine)
+
+    # Add the zipped GSSHA file to the public ckan
+    results, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, zipPath, CKAN_engine, new_name, new_description, pretty_date, user)
+
+    # If the file zips correctly, get information and store it in the database
+    if success == True:
+        new_url = results['url']
+        new_name = results['name']
+        original_url = job.original_url
+        original_name = job.original_name
+
+    print "Original URL", original_url
+    print "New URL", new_url
+
+    model_data = {'original': {'url':original_url, 'name':original_name}, 'new':{'url':new_url, 'name':new_name}}
+    job.run_urls = model_data
+    job.new_name = new_name
+    job.status = "ready to run"
+    session.commit()
+
+    return redirect(reverse('gsshaindex:status'))
+
+
+def status(request):
+    context = {}
+
+    # Get the user id
+    user = str(request.user)
+
+    # Get the jobs from the database
+    session = jobs_sessionmaker()
+    job = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    order_by(Jobs.created.desc()).all()
+
+    # Create array of jobs. If they haven't been submitted (new_name = None), don't add it to the list.
+    job_info=[]
+    for job in job:
+        print job.new_name
+        if job.new_name != None:
+            info=[job.new_name, job.status, job.original_id]
+            job_info.append(info)
+
+
+    context['job_info'] = job_info
+
+    return render(request, 'gsshaindex/jobs.html', context)
+
+def fly(request, job_id):
+    context = {}
+
+    # Get the user id
+    user = str(request.user)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Specify the workspace
+    controllerDir = os.path.abspath(os.path.dirname(__file__))
+    gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+    publicDir = os.path.join(gsshaindexDir,'public')
+    userDir = os.path.join(publicDir, str(user))
+    resultsPath = os.path.join(userDir, 'results')
+
+    # Clear the results folder
+    gi_lib.clear_folder(resultsPath)
+
+    # Get the jobs from the database
+    session = jobs_sessionmaker()
+    job = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    filter(Jobs.original_id == job_id).one()
+
+    # Get the urls and names for the analysis
+    run_urls = job.run_urls
+
+    arguments={'new': {'url':run_urls['new']['url'], 'name':run_urls['new']['name']}, 'original':{'url':run_urls['original']['url'], 'name':run_urls['original']['name']}}
+
+    # Set up for fly GSSHA
+    job.status = "processing"
+    session.commit()
+
+    status = 'complete'
+
+    results = []
+    results_urls = []
+    count = 0
+
+    GSSHA_dataset = gi_lib.check_dataset("gssha-models", CKAN_engine)
+
+    # Try running the web service
+    try:
+        for k in arguments:
+            url = str(arguments[k]['url'])
+            resultsFile = os.path.join(resultsPath, arguments[k]['name'].replace(" ","_")+datetime.now().strftime('%Y%d%m%H%M%S'))
+            gi_lib.flyGssha(url, resultsFile)
+
+            # Push file to ckan dataset
+            resource_name = ' '.join((user_id, 'GSSHA Run', datetime.now().strftime('%b %d %y %H:%M:%S')))
+            pretty_date= time.strftime("%A %B %d, %Y %I:%M:%S %p")
+            result, success = add_zip_GSSHA(dataset, resultsFile, CKAN_engine, resource_name, "", pretty_date, user, certification="Certified")
+            add_file_to_package(base_location=str(api_base_location),
+                                package_name='gssha-runner',
+                                file_path=resultsFile,
+                                name=resource_name,
+                                format='zip',
+                                model='GSSHA')
+
+            # Publish link to table
+            result = get_resource_by_field_value('name:' + resource_name)
+            results.append(result)
+            count +=1
+
+        if (len(results) == 2):
+            results_urls = [results[0]['results'][0]['url'], results[1]['results'][0]['url']]
+        else:
+            status = 'failed'
+
+    except:
+        status = 'failed'
+
+    job.status = status
+    job.result_urls = results_urls
+    session.commit()
+
+
+    return redirect(reverse('gsshaindex:status'))
+
+def delete(request, job_id):
+    context = {}
+
+    # Get the user id
+    user = str(request.user)
+
+    # Get the job from the database and delete
+    session = jobs_sessionmaker()
+    job = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    filter(Jobs.original_id == job_id).one()
+    session.delete(job)
+    session.commit()
+    return redirect(reverse('gsshaindex:status'))
+
+def results(request, job_id):
+    context = {}
+    return render(request, 'gsshaindex/namepg.html', context)
+
 def secondpg(request, name):
     """
     Controller for the app home page.
@@ -392,10 +602,5 @@ def mapping_table(request):
     context = {}
     return render(request, 'gsshaindex/namepg.html', context)
 
-def status(request):
-    context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
 
-def zip_file(request, job_id):
-    context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
+

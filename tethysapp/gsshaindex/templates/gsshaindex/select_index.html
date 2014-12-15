@@ -4,7 +4,7 @@
 
 {% block app_navigation_items %}
   <li class="title">App Navigation</li>
-  <li class="active"><a href="javascript:void(0);" onclick="TETHYS_APP_BASE.exit_app('{% url 'app_library' %}');">Home</a></li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
   <li><a href="">Load New Models</a></li>
   <li class="separator"></li>
   <li><a href="{% url 'gsshaindex:status'%}">Unsubmitted Models</a></li>
@@ -45,22 +45,30 @@
   </form>
   <form action="{% url 'gsshaindex:zip_file' job_id=job_id %}" method="post">
       {% csrf_token %}
-        <div id="submit_modal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="submit_modalLabel" aria-hidden="true">
-          <div class="modal-header">
-            <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-            <h3>Ready to Submit?</h3>
-          </div>
-          <div class="modal-body">
-            <p>If you are done editing the index maps and are ready to submit the GSSHA model to be run, please specify a name and description. Otherwise, return and finish editing.</p>
-            <label>New file name</label>
-            <input name="new_name" class="span6" type="text" value="{{project_name}} (modified)">
-            <label>New file description</label>
-            <textarea name="new_description" class="span6" rows="4"></textarea>
-          </div>
-          <div class="modal-footer">
-            <button class="btn" data-dismiss="modal" aria-hidden="true">Return to Edit</button>
-            <button class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
-          </div>
+        <div id="submit_modal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="submit_modalLabel" aria-hidden="true">
+            <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Ready to Submit?</h3>
+                  </div>
+                  <div class="modal-body">
+                    <p>If you are done editing the index maps and are ready to submit the GSSHA model to be run, please specify a name and description. Otherwise, return and finish editing.</p>
+                    <label for="new_name">New file name</label>
+                    <div class="form-group">
+                        <input id="new_name" name="new_name" class="form-control" type="text" value="{{project_name}} (modified)">
+                    </div>
+                    <label for="new_description">New file description</label>
+                    <div class="form-group">
+                        <input id="new_description" name="new_description" class="form-control" placeholder="New file description">
+                    </div>
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Return to Edit</button>
+                    <button class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
+                  </div>
+              </div>
+            </div>
         </div>
   </form>
 {% endblock %}
@@ -91,7 +99,7 @@
 {% endblock %}
 
 {% block app_actions %}
-  <a href="#submit_modal" role="button" class="btn btn-success" data-toggle="modal">Submit New GSSHA File for Comparison</a>
+  <button data-target="#submit_modal" type="button" class="btn btn-success" data-toggle="modal">Submit New GSSHA File for Comparison</button>
   <button data-target="#edit_method" type="button" class="btn btn-default" data-toggle="modal">Edit Selected Index Map</button>
 {% endblock %}
 

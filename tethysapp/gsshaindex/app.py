@@ -22,9 +22,9 @@ class GSSHAIndex(TethysAppBase):
         controllers = (AppController(name='home',
                                      url='gsshaindex',
                                      controller='gsshaindex.controllers.main.home'
-                       ),AppController(name='secondpg',
-                                     url='gsshaindex/{name}',
-                                     controller='gsshaindex.controllers.main.secondpg'
+                       # ),AppController(name='secondpg',
+                       #               url='gsshaindex/{name}',
+                       #               controller='gsshaindex.controllers.main.secondpg'
                        ),AppController(name='info_by_id',
                                      url='gsshaindex/info-by-id/{file_id}',
                                      controller='gsshaindex.controllers.ajax.info_by_id'
@@ -79,15 +79,15 @@ class GSSHAIndex(TethysAppBase):
                        # ),AppController(name='job_status',
                        #               url='gsshaindex/{job_id}/job-status',
                        #               controller='gsshaindex.controllers.job-status'
-                       # ),AppController(name='fly',
-                       #               url='gsshaindex/{job_id}/fly',
-                       #               controller='gsshaindex.controllers.fly'
-                       # ),AppController(name='delete',
-                       #               url='gsshaindex/{job_id}/delete',
-                       #               controller='gsshaindex.controllers.delete'
-                       # ),AppController(name='results',
-                       #               url='gsshaindex/{job_id}/results/{view_type}',
-                       #               controller='gsshaindex.controllers.results'
+                       ),AppController(name='fly',
+                                     url='gsshaindex/{job_id}/fly',
+                                     controller='gsshaindex.controllers.main.fly'
+                       ),AppController(name='delete',
+                                     url='gsshaindex/{job_id}/delete',
+                                     controller='gsshaindex.controllers.main.delete'
+                       ),AppController(name='results',
+                                     url='gsshaindex/{job_id}/results',
+                                     controller='gsshaindex.controllers.main.results'
                        # ),AppController(name='get_depth_map',
                        #               url='gsshaindex/{job_id}/get-depth-map/{type}',
                        #               controller='gsshaindex.controllers.get_depth_map'
