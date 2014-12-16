@@ -1,0 +1,73 @@
+{% extends "gsshaindex/base.html" %}
+
+{% load tethys_gizmos %}
+
+{% block app_navigation_items %}
+  <li class="title">App Navigation</li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
+  <li><a href="">Load New Models</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Unsubmitted Models</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Completed Models</a></li>
+  <li class="separator"></li>
+  <li><a href="">Get Started</a></li>
+{% endblock %}
+
+{% block primary_content %}
+      	<h1>Results</h1>
+        {% gizmo highcharts_plot_view hydrograph %}
+        <h1>Depth Map</h1>
+        {% gizmo editable_google_map google_map %}
+{% endblock %}
+
+{% block secondary_content %}
+   <div class="module module-narrow module-shallow">
+    <h2 class="module-heading">Comparison Results</h2>
+    <div class="module-content">
+        <p>These are the results of the GSSHA project comparison.</p>
+
+		<p style="padding-top:80px"><b>Swap Maps</b></p>
+		<p>Difference between new and old models</p>
+		<div>
+			<ul class="nav nav-pills nav-stacked">
+		    	<li {%if map_type == "both_max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='both_max'%}">Max Depth</a></li>
+		    	<li {%if map_type == "both_time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='both_time'%}">Time Series</a></li>
+		    </ul>
+		</div>
+		<p>{{c.new_name}}:</p>
+		<div id="indices-div" style="overflow-y:auto">
+    		<ul class="nav nav-pills nav-stacked">
+	    		<li {%if map_type == "new_max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='new_max'%}">Max Depth</a></li>
+	    		<li {%if map_type == "new_time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='new_time'%}">Time Series</a></li>
+	    	</ul>
+    	</div>
+    	<p>{{c.old_name}}:</p>
+		<div id="indices-div" style="overflow-y:auto">
+    		<ul class="nav nav-pills nav-stacked">
+	    		<li {%if map_type=="old_max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='old_max'%}">Max Depth</a></li>
+	    		<li {%if map_type=="old_time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results', job_id=job_id , view_type='old_time'%}">Time Series</a></li>
+	    	</ul>
+    	</div>
+		<p style="padding-top:80px">Click on the files below if you'd like to download the results.</p>
+		<div style="padding:15px" align="center">
+	    	<a href={{ old_file }}>{{ old_name }}</a>
+		</div>
+		<div style="padding:15px" align="center">
+	    	<a href={{ new_file }}>{{ new_name }}</a>
+		</div>
+    </div>
+
+  </div>
+{% endblock %}
+
+{% block app_actions %}
+  <a href="{% url 'gsshaindex:status'%}" class="btn btn-default">Back</a>
+{% endblock %}
+
+{% block scripts %}
+    {% gizmo_dependencies css %}
+    {{ block.super }}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    {% gizmo_dependencies js %}
+{% endblock %}

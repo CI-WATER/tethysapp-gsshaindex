@@ -530,35 +530,41 @@ def fly(request, job_id):
     GSSHA_dataset = gi_lib.check_dataset("gssha-models", CKAN_engine)
 
     # Try running the web service
-    try:
-        for k in arguments:
-            url = str(arguments[k]['url'])
+    # try:
+    for k in arguments:
+        url = str(arguments[k]['url'])
+        print "URL: ", url
+
+        if k == 'original' and job.original_certification=="Certified":
+            print "The original model is certified"
+            results.append(url)
+            count +=1
+            continue
+        else:
+            print "The model is not certified"
             resultsFile = os.path.join(resultsPath, arguments[k]['name'].replace(" ","_")+datetime.now().strftime('%Y%d%m%H%M%S'))
             gi_lib.flyGssha(url, resultsFile)
 
             # Push file to ckan dataset
-            resource_name = ' '.join((user_id, 'GSSHA Run', datetime.now().strftime('%b %d %y %H:%M:%S')))
+            resource_name = ' '.join((arguments[k]['name'], '-Run',datetime.now().strftime('%b %d %y %H:%M:%S')))
             pretty_date= time.strftime("%A %B %d, %Y %I:%M:%S %p")
-            result, success = add_zip_GSSHA(dataset, resultsFile, CKAN_engine, resource_name, "", pretty_date, user, certification="Certified")
-            add_file_to_package(base_location=str(api_base_location),
-                                package_name='gssha-runner',
-                                file_path=resultsFile,
-                                name=resource_name,
-                                format='zip',
-                                model='GSSHA')
+            result, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, resultsFile, CKAN_engine, resource_name, "", pretty_date, user, certification="Certified")
+
+            job.original_certification = "Certified"
+            session.commit()
 
             # Publish link to table
-            result = get_resource_by_field_value('name:' + resource_name)
-            results.append(result)
+            results.append(result['url'])
             count +=1
 
-        if (len(results) == 2):
-            results_urls = [results[0]['results'][0]['url'], results[1]['results'][0]['url']]
-        else:
-            status = 'failed'
-
-    except:
+    if (len(results) == 2):
+        results_urls = [results[0], results[1]]
+        print results_urls
+    else:
         status = 'failed'
+
+    # except:
+    #     status = 'failed'
 
     job.status = status
     job.result_urls = results_urls
@@ -583,6 +589,141 @@ def delete(request, job_id):
     return redirect(reverse('gsshaindex:status'))
 
 def results(request, job_id):
+    context = {}
+
+    view_type = "new_max"
+
+    # Get the user id
+    user = str(request.user)
+
+    # Get the job from the database and delete
+    session = jobs_sessionmaker()
+    job = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    filter(Jobs.original_id == job_id).one()
+
+    # Get the run result urls
+    result_files = job.result_urls
+
+    # Specify the workspace
+    controllerDir = os.path.abspath(os.path.dirname(__file__))
+    gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+    publicDir = os.path.join(gsshaindexDir,'public')
+    userDir = os.path.join(publicDir, str(user))
+    resultsPath = os.path.join(userDir, 'results')
+
+    # Clear the results folder
+    gi_lib.clear_folder(userDir)
+    gi_lib.clear_folder(resultsPath)
+
+    # Get the otl files
+    otl_files = []
+    for url in result_files:
+        print url
+        otl_file = gi_lib.extract_otl(url, resultsPath)
+        otl_files.append(otl_file)
+
+    # Format the values for display with high charts
+    new_values = []
+    originalValues = []
+    count = 0
+    for result_location in otl_files:
+        if count==0:
+            newFileDir = os.path.join(resultsPath, result_location)
+            with open(newFileDir, 'r') as f:
+                values = [row.strip().split('   ') for row in f]
+            for thing in values:
+                formatted_value = []
+                for item in thing:
+                    item = float(item)
+                    formatted_value.append(item)
+                new_values.append(formatted_value)
+            count +=1
+        else:
+            originalFileDir = os.path.join(resultsPath,result_location)
+            print originalFileDir
+            with open(originalFileDir, 'r') as f:
+                values = [row.strip().split('   ') for row in f]
+            for thing in values:
+                formatted_value = []
+                for item in thing:
+                    item = float(item)
+                    formatted_value.append(item)
+                originalValues.append(formatted_value)
+
+    # Set up for high charts hydrograph
+    highcharts_object = {
+            'chart': {
+                'type': 'spline'
+            },
+            'title': {
+                'text': 'Comparison Hydrograph'
+            },
+            'subtitle': {
+                'text': 'Display of the two model results'
+            },
+            'legend': {
+                'layout': 'vertical',
+                'align': 'right',
+                'verticalAlign': 'middle',
+                'borderWidth': 0
+            },
+            'xAxis': {
+                'title': {
+                    'enabled': True,
+                    'text': 'Time (hours)'
+                },
+                'labels': {
+                    'formatter': 'function () { return this.value + " hr"; }'
+                }
+            },
+            'yAxis': {
+                'title': {
+                    'enabled': True,
+                    'text': 'Discharge (cfs)'
+                },
+                'labels': {
+                    'formatter': 'function () { return this.value + " cfs"; }'
+                }
+            },
+            'tooltip': {
+                'headerFormat': '{series.name}',
+                'pointFormat': '{point.x} hours: {point.y} cfs'
+             },
+            'series': [{
+                'name': job.original_name.replace("_", " "),
+                'color': '#0066ff',
+                'dashStyle': 'ShortDash',
+                'marker' : {'enabled': False},
+                'data': originalValues
+                },{
+                'name': job.new_name.replace("_", " "),
+                'marker' : {'enabled': False},
+                'color': '#ff6600',
+                'data': new_values}
+            ]}
+
+    hydrograph = {'highcharts_object': highcharts_object,
+                        'width': '500px',
+                        'height': '500px'}
+
+    editable_map = {'height': '600px',
+                    'width': '100%',
+                    'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
+                    'maps_api_key':maps_api_key,
+                    'drawing_types_enabled':[]}
+
+    context['hydrograph'] = hydrograph
+    context['editable_map'] = editable_map
+    context['map_type'] = view_type
+    context['old_name'] = job.original_name.replace("_", " ")
+    context['new_name'] = job.new_name.replace("_", " ")
+    context['old_file'] = job.result_urls['original']['url']
+    context['new_file'] = job.result_urls['new']['url']
+
+    return render(request, 'gsshaindex/results.html', context)
+
+def get_depth_map(request, job_id, type):
     context = {}
     return render(request, 'gsshaindex/namepg.html', context)
 

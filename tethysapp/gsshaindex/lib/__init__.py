@@ -185,9 +185,9 @@ def extract_zip_from_url(user_id, download_url, workspace):
 
     return extract_path, unique_dir
 
-def add_zip_GSSHA(dataset, GSSHA_file_path, CKAN_engine, GSSHA_file_name, new_description, date, user_id, *kwargs):
+def add_zip_GSSHA(dataset, GSSHA_file_path, CKAN_engine, GSSHA_file_name, new_description, date, user_id, certification=''):
 
-    result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=GSSHA_file_name, file=GSSHA_file_path, format="zip", model="GSSHA", description=new_description + "  Modified on "+ date +" by "+ user_id)
+    result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=GSSHA_file_name, file=GSSHA_file_path, format="zip", model="GSSHA", certification=certification, description=new_description + "  Modified on "+ date +" by "+ user_id)
 
     return result['result'], result['success']
 
@@ -221,9 +221,8 @@ def extract_otl (url, extract_path):
     zip_file = urllib2.urlopen(url)
     zf = zipfile.ZipFile(StringIO.StringIO(zip_file.read()))
     for file in zf.namelist():
-#         if file.startswith("Results"):
-            if file.endswith('.otl'):
-                otl_file=file
+        if file.endswith('.otl'):
+            otl_file=file
 
     # Extract the mask file
     zf.extract(otl_file, extract_path)

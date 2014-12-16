@@ -88,9 +88,9 @@ class GSSHAIndex(TethysAppBase):
                        ),AppController(name='results',
                                      url='gsshaindex/{job_id}/results',
                                      controller='gsshaindex.controllers.main.results'
-                       # ),AppController(name='get_depth_map',
-                       #               url='gsshaindex/{job_id}/get-depth-map/{type}',
-                       #               controller='gsshaindex.controllers.get_depth_map'
+                       ),AppController(name='get_depth_map',
+                                     url='gsshaindex/{job_id}/get-depth-map/{type}',
+                                     controller='gsshaindex.controllers.main.get_depth_map'
                        ),
         )
 
