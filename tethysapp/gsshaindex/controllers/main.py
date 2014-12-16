@@ -689,14 +689,13 @@ def results(request, job_id, view_type):
                         'width': '500px',
                         'height': '500px'}
 
-    editable_map = {'height': '600px',
+    google_map = {'height': '600px',
                     'width': '100%',
                     'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
-                    'maps_api_key':maps_api_key,
-                    'drawing_types_enabled':[]}
+                    'maps_api_key':maps_api_key}
 
     context['hydrograph'] = hydrograph
-    context['google_map'] = editable_map
+    context['google_map'] = google_map
     context['map_type'] = view_type
     context['original_name'] = job.original_name.replace("_", " ")
     context['new_name'] = job.new_name.replace("_", " ")
@@ -708,8 +707,96 @@ def results(request, job_id, view_type):
 
 def get_depth_map(request, job_id, view_type):
     context = {}
-    kml_links=''
-    return JsonResponse({'kml_links': kml_links})
+
+    # Get the user id
+    user = str(request.user)
+
+    # Get the job from the database and delete
+    session = jobs_sessionmaker()
+    job = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    filter(Jobs.original_id == job_id).one()
+
+    # Specify the workspace
+    controllerDir = os.path.abspath(os.path.dirname(__file__))
+    gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+    publicDir = os.path.join(gsshaindexDir,'public')
+    userDir = os.path.join(publicDir, str(user))
+    depthMapDir = os.path.join(userDir, 'depth_maps')
+    newDepthDir = os.path.join(depthMapDir, 'new')
+    originalDepthDir = os.path.join(depthMapDir, 'original')
+
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    kml_link = ""
+
+    if view_type == "newTime":
+        if job.newTime != None:
+            kml_link = job.newTime
+        else:
+            result_url = job.result_urls['new']
+            result = gi_lib.prepare_time_depth_map(user, result_url, job, newDepthDir, CKAN_engine)
+            job.newTime = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    elif view_type == "newMax":
+        if job.newMax != None:
+            kml_link = job.newMax
+        else:
+            result_url = job.result_urls['new']
+            result = gi_lib.prepare_max_depth_map(user, result_url, job, newDepthDir, CKAN_engine)
+            job.newMax = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    elif view_type == "originalTime":
+        if job.originalTime != None:
+            kml_link = job.originalTime
+        else:
+            result_url = job.result_urls['original']
+            result = gi_lib.prepare_time_depth_map(user, result_url, job, originalDepthDir, CKAN_engine)
+            job.originalTime = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    elif view_type == "originalMax":
+        if job.originalMax != None:
+            kml_link = job.originalMax
+        else:
+            result_url = job.result_urls['original']
+            result = gi_lib.prepare_max_depth_map(user, result_url, job, originalDepthDir, CKAN_engine)
+            job.originalMax = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    elif view_type == "bothTime":
+        if job.bothTime != None:
+            kml_link = job.bothTime
+        else:
+            new_result_url = job.result_urls['new']
+            original_result_url = job.result_urls['original']
+            result = gi_lib.prepare_both_time_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine)
+            job.bothTime = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    elif view_type== "bothMax":
+        if job.bothMax != None:
+            kml_link = job.bothMax
+        else:
+            result_url = job.result_urls['new']
+            original_result_url = job.result_urls['original']
+            result = gi_lib.prepare_both_max_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine)
+            job.bothMax = result['url']
+            session.commit()
+            kml_link = result['url']
+
+    else:
+        kml_link=""
+
+
+    return JsonResponse({'kml_links': kml_link})
 
 def secondpg(request, name):
     """

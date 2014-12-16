@@ -26,23 +26,23 @@
 	  </button>
 		<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
 			<li class="dropdown-header">{{new_name}}</li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='new-max'%}">Max Depth</a></li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='new-time'%}">Time Series</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='newMax'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='newTime'%}">Time Series</a></li>
 			<li class="dropdown-header">{{original_name}}</li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='original-max'%}">Max Depth</a></li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='original-time'%}">Time Series</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='originalMax'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='originalTime'%}">Time Series</a></li>
 			<li class="dropdown-header">{{new_name}} vs {{original_name}}</li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='both-max'%}">Max Depth</a></li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='both-time'%}">Time Series</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='bothMax'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='bothTime'%}">Time Series</a></li>
 		</ul>
 	</div>
-	{% gizmo editable_google_map google_map %}
+	{% gizmo google_map google_map %}
 
 	<p style="padding-top:40px" align="center">Click on the files below if you'd like to download the results.</p>
-	<div style="padding:5px" align="center">
-		<a href={{ old_file }}>{{ old_name }}</a>
+	<div style="padding-bottom:5px" align="center">
+		<a href={{ original_file }}>{{ original_name }}</a>
 	</div>
-	<div style="padding:5px" align="center">
+	<div style="padding-top:5px; padding-bottom:40px" align="center">
 		<a href={{ new_file }}>{{ new_name }}</a>
 	</div>
 {% endblock %}

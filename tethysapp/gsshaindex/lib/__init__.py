@@ -2,6 +2,7 @@ import os, ConfigParser, zipfile, shutil, urllib2, StringIO
 from collections import namedtuple
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
+from gsshapy.orm import *
 from gsshapy.lib import db_tools as dbt
 from owslib.wps import WebProcessingService
 from owslib.wps import monitorExecution
@@ -244,3 +245,164 @@ def get_otl_values(file_path, otl_file, value_array):
         value_array.append(formatted_value)
 
     return value_array
+
+def add_depth_map_CKAN(dataset, CKAN_engine, depth_file, depth_name):
+    '''
+    This function adds a kml file to CKAN
+    kml_file = where the kml is located
+    kml_name = the name of the kml file
+    '''
+
+    result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=depth_name, file=depth_file, format="kmz")
+
+    return result['result'], result['success']
+
+def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
+
+    # Clear the results folder
+    clear_folder(depthMapDir)
+
+    # Create gsshapy_session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    # Extract the GSSHA file
+    extract_path, unique_dir = extract_zip_from_url(user, result_url, depthMapDir)
+
+    # Find the project file
+    for root, dirs, files in os.walk(depthMapDir):
+        for file in files:
+            if file.endswith(".prj"):
+                project_name = file
+                project_path = os.path.join(root, file)
+                read_dir = os.path.dirname(project_path)
+                depth_file = project_path[:-3]+"kmz"
+                resource_name = project_name[:-4]+" time step depth"
+
+    # Create an empty Project File Object
+    project_file = ProjectFile()
+
+    # Invoke the read command on the Project File Object to get the output files in the database
+    project_file.readOutput(directory=read_dir,
+                      projectFileName=project_name,
+                      session=gsshapy_session,
+                      spatial=True)
+    try:
+        # Create a kml using the depth map
+        depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "dep").one()
+        depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+
+        depth_raster = check_dataset("depth-maps", CKAN_engine)
+        result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
+    except:
+        result={'url':""}
+
+    return result
+
+def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
+
+    # Clear the results folder
+    clear_folder(depthMapDir)
+
+    # Create gsshapy_session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    # Extract the GSSHA file
+    extract_path, unique_dir = extract_zip_from_url(user, result_url, depthMapDir)
+
+    # Find the project file
+    for root, dirs, files in os.walk(depthMapDir):
+        for file in files:
+            if file.endswith(".prj"):
+                project_name = file
+                project_path = os.path.join(root, file)
+                read_dir = os.path.dirname(project_path)
+                depth_file = project_path[:-3]+"kmz"
+                resource_name = project_name[:-4]+" max depth"
+
+    # Create an empty Project File Object
+    project_file = ProjectFile()
+
+    # Invoke the read command on the Project File Object to get the output files in the database
+    project_file.readOutput(directory=read_dir,
+                      projectFileName=project_name,
+                      session=gsshapy_session,
+                      spatial=True)
+
+    # Create a kml using the depth map
+    try:
+        depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+        depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+
+        depth_raster = check_dataset("depth-maps", CKAN_engine)
+        result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
+    except:
+        result={'url':""}
+
+    return result
+
+def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine):
+
+    # Clear the results folder
+    clear_folder(depthMapDir)
+
+    # Create gsshapy_session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Get project file id
+    project_file_id = job.new_model_id
+
+    # Extract the GSSHA file
+    extract_path, unique_dir = extract_zip_from_url(user, result_url, depthMapDir)
+
+    # Find the project file
+    for root, dirs, files in os.walk(newDepthMapDir):
+        for file in files:
+            if file.endswith(".prj"):
+                new_project_name = file
+                new_project_path = os.path.join(root, file)
+                new_read_dir = os.path.dirname(project_path)
+                new_depth_file = project_path[:-3]+"kmz"
+
+    # Find the project file
+    for root, dirs, files in os.walk(originalDepthMapDir):
+        for file in files:
+            if file.endswith(".prj"):
+                original_project_name = file
+                original_project_path = os.path.join(root, file)
+                original_read_dir = os.path.dirname(project_path)
+                original_depth_file = project_path[:-3]+"kmz"
+
+    # Create an empty Project File Object
+    new_project_file = ProjectFile()
+    original_project_file = ProjectFile()
+
+    # Invoke the read command on the Project File Object to get the output files in the database
+    new_project_file.readOutput(directory=new_read_dir,
+                      projectFileName=new_project_name,
+                      session=gsshapy_session,
+                      spatial=True)
+
+    original_project_file.readOutput(directory=original_read_dir,
+                      projectFileName=original_project_name,
+                      session=gsshapy_session,
+                      spatial=True)
+
+    # Create a kml using the depth map
+    try:
+        new_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == new_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+        original_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == original_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+
+        # depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+
+        # depth_raster = check_dataset("depth-maps", CKAN_engine)
+        # result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
+    except:
+        result={'url':""}
+
+    return result
