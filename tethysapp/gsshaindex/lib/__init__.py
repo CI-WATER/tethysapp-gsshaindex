@@ -228,3 +228,19 @@ def extract_otl (url, extract_path):
     zf.extract(otl_file, extract_path)
 
     return otl_file
+
+def get_otl_values(file_path, otl_file, value_array):
+    '''
+    This takes an otl file location and an empty array and fills the array with the values from the otl file
+    '''
+    newFileDir = os.path.join(file_path, otl_file)
+    with open(newFileDir, 'r') as f:
+        values = [row.strip().split('   ') for row in f]
+    for thing in values:
+        formatted_value = []
+        for item in thing:
+            item = float(item)
+            formatted_value.append(item)
+        value_array.append(formatted_value)
+
+    return value_array

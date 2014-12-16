@@ -30,7 +30,7 @@
                         <td class="status" data-id="{{ job.2 }}" data-status="{{job.1}}">{{job.1}}</td>
                         <td><a class="btn btn-mini btn-success" href="{% url 'gsshaindex:fly' job_id=job.2 %}">Run</a></td>
                         <td><a class="btn btn-mini btn-danger" href="{% url 'gsshaindex:delete' job_id=job.2 %}">Delete</a></td>
-                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:results' job_id=job.2 %}">View Results</a></td>
+                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:results' view_type='new-max' job_id=job.2 %}">View Results</a></td>
                     </tr>
                 {% endfor %}
             </table>

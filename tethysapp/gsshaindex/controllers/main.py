@@ -524,7 +524,8 @@ def fly(request, job_id):
     status = 'complete'
 
     results = []
-    results_urls = []
+    # results_urls = []
+    results_urls = {}
     count = 0
 
     GSSHA_dataset = gi_lib.check_dataset("gssha-models", CKAN_engine)
@@ -537,7 +538,8 @@ def fly(request, job_id):
 
         if k == 'original' and job.original_certification=="Certified":
             print "The original model is certified"
-            results.append(url)
+            # results.append(url)
+            results_urls['original']=url
             count +=1
             continue
         else:
@@ -554,11 +556,15 @@ def fly(request, job_id):
             session.commit()
 
             # Publish link to table
-            results.append(result['url'])
+            # results.append(result['url'])
+            if k=='original':
+                results_urls['original']=result['url']
+            else:
+                results_urls['new']=result['url']
             count +=1
 
-    if (len(results) == 2):
-        results_urls = [results[0], results[1]]
+    if (count == 2):
+        # results_urls = [results[0], results[1]]
         print results_urls
     else:
         status = 'failed'
@@ -588,10 +594,8 @@ def delete(request, job_id):
     session.commit()
     return redirect(reverse('gsshaindex:status'))
 
-def results(request, job_id):
+def results(request, job_id, view_type):
     context = {}
-
-    view_type = "new_max"
 
     # Get the user id
     user = str(request.user)
@@ -610,46 +614,24 @@ def results(request, job_id):
     gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
     publicDir = os.path.join(gsshaindexDir,'public')
     userDir = os.path.join(publicDir, str(user))
-    resultsPath = os.path.join(userDir, 'results')
+    newResultsPath = os.path.join(userDir, 'new_results')
+    originalResultsPath = os.path.join(userDir, 'original_results')
 
     # Clear the results folder
     gi_lib.clear_folder(userDir)
-    gi_lib.clear_folder(resultsPath)
+    gi_lib.clear_folder(newResultsPath)
+    gi_lib.clear_folder(originalResultsPath)
 
     # Get the otl files
-    otl_files = []
-    for url in result_files:
-        print url
-        otl_file = gi_lib.extract_otl(url, resultsPath)
-        otl_files.append(otl_file)
+    new_otl_file = gi_lib.extract_otl(result_files['new'], newResultsPath)
+    original_otl_file = gi_lib.extract_otl(result_files['original'], originalResultsPath)
 
     # Format the values for display with high charts
     new_values = []
     originalValues = []
-    count = 0
-    for result_location in otl_files:
-        if count==0:
-            newFileDir = os.path.join(resultsPath, result_location)
-            with open(newFileDir, 'r') as f:
-                values = [row.strip().split('   ') for row in f]
-            for thing in values:
-                formatted_value = []
-                for item in thing:
-                    item = float(item)
-                    formatted_value.append(item)
-                new_values.append(formatted_value)
-            count +=1
-        else:
-            originalFileDir = os.path.join(resultsPath,result_location)
-            print originalFileDir
-            with open(originalFileDir, 'r') as f:
-                values = [row.strip().split('   ') for row in f]
-            for thing in values:
-                formatted_value = []
-                for item in thing:
-                    item = float(item)
-                    formatted_value.append(item)
-                originalValues.append(formatted_value)
+
+    new_values = gi_lib.get_otl_values(newResultsPath, new_otl_file, new_values)
+    originalValues = gi_lib.get_otl_values(originalResultsPath, original_otl_file, originalValues)
 
     # Set up for high charts hydrograph
     highcharts_object = {
@@ -714,18 +696,20 @@ def results(request, job_id):
                     'drawing_types_enabled':[]}
 
     context['hydrograph'] = hydrograph
-    context['editable_map'] = editable_map
+    context['google_map'] = editable_map
     context['map_type'] = view_type
     context['old_name'] = job.original_name.replace("_", " ")
     context['new_name'] = job.new_name.replace("_", " ")
-    context['old_file'] = job.result_urls['original']['url']
-    context['new_file'] = job.result_urls['new']['url']
+    context['old_file'] = job.result_urls['original']
+    context['new_file'] = job.result_urls['new']
+    context['job_id'] = job_id
 
     return render(request, 'gsshaindex/results.html', context)
 
-def get_depth_map(request, job_id, type):
+def get_depth_map(request, job_id, view_type):
     context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
+    kml_links=''
+    return JsonResponse({'kml_links': kml_links})
 
 def secondpg(request, name):
     """
