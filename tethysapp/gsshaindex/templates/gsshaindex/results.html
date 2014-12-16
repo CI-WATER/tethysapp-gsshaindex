@@ -14,52 +14,39 @@
   <li><a href="">Get Started</a></li>
 {% endblock %}
 
-{% block primary_content %}
-      	<h1>Results</h1>
-        {% gizmo highcharts_plot_view hydrograph %}
-        <h1>Depth Map</h1>
-        {% gizmo editable_google_map google_map %}
+{% block app_content %}
+	<h1>Results</h1>
+	{% gizmo highcharts_plot_view hydrograph %}
+	<h1>Depth Map</h1>
+	<p>Select which depth map you'd like to view</p>
+	<div class="dropdown" style="padding-bottom:15px">
+	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
+		Depth Map Options
+		<span class="caret"></span>
+	  </button>
+		<ul class="dropdown-menu" role="menu" aria-labelledby="dropdownMenu2">
+			<li class="dropdown-header">{{new_name}}</li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='new-max'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='new-time'%}">Time Series</a></li>
+			<li class="dropdown-header">{{original_name}}</li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='original-max'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='original-time'%}">Time Series</a></li>
+			<li class="dropdown-header">{{new_name}} vs {{original_name}}</li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='both-max'%}">Max Depth</a></li>
+			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='both-time'%}">Time Series</a></li>
+		</ul>
+	</div>
+	{% gizmo editable_google_map google_map %}
+
+	<p style="padding-top:40px" align="center">Click on the files below if you'd like to download the results.</p>
+	<div style="padding:5px" align="center">
+		<a href={{ old_file }}>{{ old_name }}</a>
+	</div>
+	<div style="padding:5px" align="center">
+		<a href={{ new_file }}>{{ new_name }}</a>
+	</div>
 {% endblock %}
 
-{% block secondary_content %}
-   <div class="module module-narrow module-shallow">
-    <h2 class="module-heading">Comparison Results</h2>
-    <div class="module-content">
-        <p>These are the results of the GSSHA project comparison.</p>
-
-		<p style="padding-top:80px"><b>Swap Maps</b></p>
-		<p>Difference between new and old models</p>
-		<div>
-			<ul class="nav nav-pills nav-stacked">
-		    	<li {%if map_type == "both-max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='both-max'%}">Max Depth</a></li>
-		    	<li {%if map_type == "both-time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='both-time'%}">Time Series</a></li>
-		    </ul>
-		</div>
-		<p>{{new_name}}:</p>
-		<div id="indices-div" style="overflow-y:auto">
-    		<ul class="nav nav-pills nav-stacked">
-	    		<li {%if map_type == "new-max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='new-max'%}">Max Depth</a></li>
-	    		<li {%if map_type == "new-time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='new-time'%}">Time Series</a></li>
-	    	</ul>
-    	</div>
-    	<p>{{old_name}}:</p>
-		<div id="indices-div" style="overflow-y:auto">
-    		<ul class="nav nav-pills nav-stacked">
-	    		<li {%if map_type == "old-max"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='old-max'%}">Max Depth</a></li>
-	    		<li {%if map_type == "old-time"%}class="indices active"{%else%}class="indices"{%endif%}><a href="{% url 'gsshaindex:results' job_id=job_id view_type='old-time'%}">Time Series</a></li>
-	    	</ul>
-    	</div>
-		<p style="padding-top:80px">Click on the files below if you'd like to download the results.</p>
-		<div style="padding:15px" align="center">
-	    	<a href={{ old_file }}>{{ old_name }}</a>
-		</div>
-		<div style="padding:15px" align="center">
-	    	<a href={{ new_file }}>{{ new_name }}</a>
-		</div>
-    </div>
-
-  </div>
-{% endblock %}
 
 {% block app_actions %}
   <a href="{% url 'gsshaindex:status'%}" class="btn btn-default">Back</a>

@@ -698,9 +698,9 @@ def results(request, job_id, view_type):
     context['hydrograph'] = hydrograph
     context['google_map'] = editable_map
     context['map_type'] = view_type
-    context['old_name'] = job.original_name.replace("_", " ")
+    context['original_name'] = job.original_name.replace("_", " ")
     context['new_name'] = job.new_name.replace("_", " ")
-    context['old_file'] = job.result_urls['original']
+    context['original_file'] = job.result_urls['original']
     context['new_file'] = job.result_urls['new']
     context['job_id'] = job_id
 
