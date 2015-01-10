@@ -1,0 +1,47 @@
+{% extends "gsshaindex/base.html" %}
+
+{% load tethys_gizmos staticfiles %}
+
+{% block app_navigation_items %}
+  <li class="title">App Navigation</li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
+  <li><a href="">Load New Models</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Unsubmitted Models</a></li>
+  <li class="separator"></li>
+  <li class="active"><a href="{% url 'gsshaindex:status'%}">Completed Models</a></li>
+  <li class="separator"></li>
+  <li><a href="">Get Started</a></li>
+{% endblock %}
+
+{% block app_content %}
+   	<h1 class="heading_title">Submitted Projects</h1>
+    <p>This is a list of your submitted projects and their status.</p>
+    <div class="module-content">
+      	<div id="jobs-table">
+		    <table class="table table-striped">
+                <thead>
+                    <th>File</th>
+                    <th>Status</th>
+                </thead>
+                {% for job in job_info %}
+                    <tr>
+                        <td class="name" data-id="{{ job.2 }}">{{job.0}}</td>
+                        <td class="status" data-id="{{ job.2 }}" data-status="{{job.1}}">{{job.1}}</td>
+                        <td><a class="btn btn-mini btn-success" href="{% url 'gsshaindex:fly' job_id=job.2 %}">Run</a></td>
+                        <td><a class="btn btn-mini btn-danger" href="{% url 'gsshaindex:delete' job_id=job.2 %}">Delete</a></td>
+                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:results' view_type='newMax' job_id=job.2 %}">View Results</a></td>
+                    </tr>
+                {% endfor %}
+            </table>
+		</div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+    {% gizmo_dependencies css %}
+    {{ block.super }}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="{% static 'gsshaindex/js/fly.js' %}" type="text/javascript"></script>
+    {% gizmo_dependencies js %}
+{% endblock %}
