@@ -464,6 +464,29 @@ def zip_file(request, job_id):
     return redirect(reverse('gsshaindex:status'))
 
 
+def in_progress(request):
+    context = {}
+
+    # Get the user id
+    user = str(request.user)
+
+    # Get the jobs from the database
+    session = jobs_sessionmaker()
+    jobs = session.query(Jobs).\
+                    filter(Jobs.user_id == user).\
+                    filter(Jobs.status == "pending").\
+                    order_by(Jobs.created.desc()).all()
+
+    # Create array of pending jobs
+    job_info=[]
+    for job in jobs:
+        info=[job.original_name, job.created, job.original_id]
+        job_info.append(info)
+
+    context['job_info'] = job_info
+
+    return render(request, 'gsshaindex/uncompleted_jobs.html', context)
+
 def status(request):
     context = {}
 
@@ -579,7 +602,7 @@ def fly(request, job_id):
 
     return redirect(reverse('gsshaindex:status'))
 
-def delete(request, job_id):
+def delete(request, job_id, return_to):
     context = {}
 
     # Get the user id
@@ -592,7 +615,11 @@ def delete(request, job_id):
                     filter(Jobs.original_id == job_id).one()
     session.delete(job)
     session.commit()
-    return redirect(reverse('gsshaindex:status'))
+
+    if return_to == "uncompleted":
+        return redirect(reverse('gsshaindex:in_progress'))
+    elif return_to == "jobs":
+        return redirect(reverse('gsshaindex:status'))
 
 def results(request, job_id, view_type):
     context = {}
@@ -813,6 +840,5 @@ def secondpg(request, name):
 def mapping_table(request):
     context = {}
     return render(request, 'gsshaindex/namepg.html', context)
-
 
 
