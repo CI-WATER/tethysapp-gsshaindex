@@ -76,6 +76,9 @@ class GSSHAIndex(TethysAppBase):
                        ),AppController(name='status',
                                        url='gsshaindex/status',
                                        controller='gsshaindex.controllers.main.status'
+                       ),AppController(name='in_progress',
+                                       url='gsshaindex/in-progress',
+                                       controller='gsshaindex.controllers.main.in_progress'
                        # ),AppController(name='job_status',
                        #               url='gsshaindex/{job_id}/job-status',
                        #               controller='gsshaindex.controllers.job-status'
@@ -83,7 +86,7 @@ class GSSHAIndex(TethysAppBase):
                                      url='gsshaindex/{job_id}/fly',
                                      controller='gsshaindex.controllers.main.fly'
                        ),AppController(name='delete',
-                                     url='gsshaindex/{job_id}/delete',
+                                     url='gsshaindex/{job_id}/delete/{return_to}',
                                      controller='gsshaindex.controllers.main.delete'
                        ),AppController(name='results',
                                      url='gsshaindex/{job_id}/results/{view_type}',
