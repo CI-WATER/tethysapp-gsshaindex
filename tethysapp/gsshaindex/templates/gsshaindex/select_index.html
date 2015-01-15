@@ -102,10 +102,8 @@
 {% endblock %}
 
 {% block scripts %}
-    {% gizmo_dependencies css %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    {% gizmo_dependencies js %}
 	<script>
         function changeMap(element, map_name, job_id) {
 			$('.indices').each(function(file_id){

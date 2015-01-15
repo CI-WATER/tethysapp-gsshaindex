@@ -65,8 +65,6 @@
 {% endblock %}
 
 {% block scripts %}
-    {% gizmo_dependencies css %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    {% gizmo_dependencies js %}
 {% endblock %}

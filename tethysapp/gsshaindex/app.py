@@ -126,7 +126,7 @@ class GSSHAIndex(TethysAppBase):
         """
         dataset_services = (DatasetService(name='gsshaindex_ciwweb',
                                            type='ckan',
-                                           endpoint='http://ciwweb.chpc.utah.edu/api/3/action',
+                                           endpoint='http://ciwckan.chpc.utah.edu/api/3/action',
                                            apikey='c9f477f0-118f-49f1-8d5a-b35757689c74'
                                            ),
         )
