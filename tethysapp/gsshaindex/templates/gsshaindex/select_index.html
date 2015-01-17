@@ -115,6 +115,7 @@
 					$(this).addClass('active');
 				};
 			});
+            $('.heading_title').text("Index Map: " + map_name);
 			TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
 		};
 

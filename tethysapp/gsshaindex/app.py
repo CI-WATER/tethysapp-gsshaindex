@@ -55,9 +55,9 @@ class GSSHAIndex(TethysAppBase):
                        # ),AppController(name='show_overlay',
                        #               url='gsshaindex/{job_id}/show_overlay/{index_name}/(shapefile_id}',
                        #               controller='gsshaindex.controllers.show_overlay'
-                       # ),AppController(name='combine_index',
-                       #               url='gsshaindex/{job_id}/combine-index/{index_name}',
-                       #               controller='gsshaindex.controllers.combine_index'
+                       ),AppController(name='combine_index',
+                                     url='gsshaindex/{job_id}/combine-index/{index_name}',
+                                     controller='gsshaindex.controllers.combine_index.combine_index'
                        ),AppController(name='submit_edits',
                                      url='gsshaindex/{job_id}/submit-edits/{index_name}',
                                      controller='gsshaindex.controllers.draw_index.submit_edits'

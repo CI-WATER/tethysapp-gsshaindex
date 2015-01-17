@@ -1,0 +1,66 @@
+{% extends "gsshaindex/base.html" %}
+
+{% load tethys_gizmos %}
+
+{% block app_navigation_items %}
+  <li class="title">App Navigation</li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
+  <!--<li><a href="">Load New Models</a></li>-->
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:in_progress'%}">Models in Progress</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Completed Models</a></li>
+{% endblock %}
+
+{% block primary_content %}
+   	<h1 class="heading_title">Index Maps to Replace: {{index_name}}</h1>
+    <form id="map_edits" method="post" action="{% url 'gsshaindex:submit_edits' index_name=index_name job_id=job_id %}">
+        {% csrf_token %}
+        {% gizmo editable_google_map google_map %}
+    <form id="submit_combo" method="post" action="{% url 'gsshaindex:combine_index' index_name=index_name job_id=job_id %}">
+	    	<h3>Select the two index maps you'd like to combine or the one that you'd like to replace it with.</h3>
+			{% gizmo select_input select_input1 %}
+			{% gizmo select_input select_input2 %}
+    </form>
+{% endblock %}
+
+{% block secondary_content %}
+  <div class="module module-narrow module-shallow">
+    <h2 class="module-heading">
+      Combine Index Maps
+    </h2>
+    <div class="module-content">
+    	<p>Select which index maps you would like to combine to replace one of the current index maps.</p>
+    	<div id="indices-div" style="height:400px;overflow-y:auto">
+            <ul class="nav nav-pills nav-stacked">
+                {% for name in resource_name %}
+                    <li {% if name == index_name %}class="indices active"{% else %}class="indices"{% endif %} ><a href="javascript:void(0);" id="{{name}}"onclick="changeMap(this, '{{name}}', '{{job_id}}');">{{ name }}</a></li>
+                {% endfor %}
+            </ul>
+    	</div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block app_actions %}
+  <input type="submit" form="submit_combo" class="btn btn-default" value="Next"/>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script>
+        function changeMap(element, map_name, job_id) {
+			$('.indices').each(function(file_id){
+				$(this).removeClass('active')
+			});
+			$('#index_name').val(map_name);
+			$('.indices').each(function(){
+				if ($(this).children('a').get(0).id == map_name){
+					$(this).addClass('active');
+				};
+			});
+			TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
+		};
+    </script>
+{% endblock %}
