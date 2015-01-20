@@ -301,10 +301,14 @@ def select_index(request, job_id):
         shapefile_id = shapefile_list[0]['id']
     print shapefile_id
 
+    print "REQUESTS: ", request.POST
+
     # Give options for editing the index map
     if ('select_index' in request.POST):
         params = request.POST
+        print params
         index_name = params['index_name']
+        print index_name
         if (params['method'] == "Create polygons"):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
         elif (params['method'] == "Download shapefile"):

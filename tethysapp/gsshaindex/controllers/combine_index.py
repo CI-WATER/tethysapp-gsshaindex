@@ -30,9 +30,8 @@ def combine_index(request, job_id, index_name):
     job, success = gi_lib.get_pending_job(job_id, user, job_session)
     CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
-    # Get project file id
+    # Get project file id and gsshapy_session
     project_file_id = job.new_model_id
-
     gsshapy_session = gsshapy_sessionmaker()
 
     # Use project id to link to original map table file
@@ -44,9 +43,11 @@ def combine_index(request, job_id, index_name):
     # Get list of index files
     resource_list = json.loads(job.current_kmls)
 
+    # Create blank array for names and urls
     resource_names = []
     resource_url = []
     resource_info = []
+
     # Get array of names and urls
     for key in resource_list:
         resource_names.append(key)
@@ -63,22 +64,24 @@ def combine_index(request, job_id, index_name):
                        'multiple': False,
                        'options': [("None", "none")] + resource_info}
 
-    print "REQUESTS: ", request.POST
-
-    if 'submit_combo' in request.POST:
+    # if the next button was pressed
+    if request.POST:
+        print "Something is happening"
+        params = request.POST
         # Error message if both maps selected are the same
-        if select1 == select2:
+        if params['select1'] == params['select2']:
+            result = ""
             messages.error(request, "You must select two different index maps. Or if you'd like to replace this map with a different map, select None for the second option")
         # Process if only one map is selected
-        elif select2 == "none":
+        elif params['select2'] == "none":
             select1_id = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == params['select1']).one()
             statement = '''UPDATE idx_index_maps
                                   Set raster = ST_MapAlgebra(
                                   (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(select1_id.id) +'''), 1,
-                                  (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +'''), 1,
+                                  (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(new_index.id) +'''), 1,
                                   '([rast1]*1000 + [rast2]*0)'
                                   )
-                                WHERE id = '''+ unicode(index_raster.id) +''';
+                                WHERE id = '''+ unicode(new_index.id) +''';
                             '''
             result = gsshapy_engine.execute(statement)
         # Process if two maps are selected
@@ -93,155 +96,161 @@ def combine_index(request, job_id, index_name):
                               (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(select2_id.id) +'''), 1,
                               '(([rast1]*1000) + [rast2])'
                               )
-                            WHERE id = '''+ unicode(index_raster.id) +''';
+                            WHERE id = '''+ unicode(new_index.id) +''';
                         '''
             result = gsshapy_engine.execute(statement)
 
-        # Get the values in the index map
-        statement3 = '''SELECT (pvc).*
-                        FROM (SELECT ST_ValueCount(raster,1,true) As pvc
-                        FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +''') AS foo
-                        ORDER BY (pvc).value;
-                        '''
-        result3 = gsshapy_engine.execute(statement3)
+        if result != "":
+            # Get the values in the index map
+            statement3 = '''SELECT (pvc).*
+                            FROM (SELECT ST_ValueCount(raster,1,true) As pvc
+                            FROM idx_index_maps WHERE id = '''+ unicode(new_index.id) +''') AS foo
+                            ORDER BY (pvc).value;
+                            '''
+            result3 = gsshapy_engine.execute(statement3)
 
-        # Get the indices for the index being changed
-        indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
-                               join(MTValue).\
-                               filter(MTValue.mapTable == mapTables[0]).\
-                               order_by(MTIndex.index).\
-                               all()
+            # Get the indices for the index being changed
+            indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+                                   join(MTValue).\
+                                   filter(MTValue.mapTable == mapTables[0]).\
+                                   order_by(MTIndex.index).\
+                                   all()
 
-        # Go through the map tables that use the index map
-        map_table_count = 0
-        for mapping_table in mapTables:
+            # Go through the map tables that use the index map
+            map_table_count = 0
+            for mapping_table in mapTables:
 
-            # Reset the number of ids to start counting them
-            numberIDs = 0
-            ids = []
+                # Reset the number of ids to start counting them
+                numberIDs = 0
+                ids = []
 
-            # Go through each new id value
-            for row in result3:
-                index_present = False
-                numberIDs +=1
-                ids.append(row.value)
-                large_id = int(row[0])
-                for index in index_raster.indices:
-                    if int(index.index) == int(row[0]):
-                        index_present = True
-                        break
+                # Go through each new id value
+                for row in result3:
+                    index_present = False
+                    numberIDs +=1
+                    ids.append(row.value)
+                    large_id = int(row[0])
+                    for index in new_index.indices:
+                        if int(index.index) == int(row[0]):
+                            index_present = True
+                            break
 
-                if index_present == False:
-                    if str(large_id).endswith("000") == False:
-                        second_id = str(large_id).split("0")[-1]
-                        first_id = (large_id - int(second_id))/1000
-                    else:
-                        first_id = (large_id)/1000
-                        second_id = ""
-                        description2 = ""
+                    print "Large ID ",large_id
 
-                    pastinfo1 = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
-                            filter(MTIndex.idxMapID == select1_id.id).\
-                            filter(MTIndex.index == first_id).\
-                            all()
-                    description1 = pastinfo1[0].description1 + " " + pastinfo1[0].description2
+                    if index_present == False:
+                        if str(large_id).endswith("000") == False:
+                            second_id = str(large_id).split("0")[-1]
+                            first_id = (large_id - int(second_id))/1000
+                        else:
+                            first_id = (large_id)/1000
+                            second_id = ""
+                            description2 = ""
 
-                    if second_id != "":
-                        pastinfo2 = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
-                                filter(MTIndex.idxMapID == select2_id.id).\
-                                filter(MTIndex.index == second_id).\
+                        print first_id
+
+                        pastinfo1 = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+                                filter(MTIndex.idxMapID == select1_id.id).\
+                                filter(MTIndex.index == first_id).\
                                 all()
-                        description2 = pastinfo2[0].description1 + " " + pastinfo2[0].description2
+                        print pastinfo1
+                        description1 = pastinfo1[0].description1 + " " + pastinfo1[0].description2
 
-                    # Create new index value
-                    new_indice = MTIndex(row[0], description1, description2)
-                    new_indice.indexMap = index_raster
-                    for mapping_table in mapTables:
-                        distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
-                                         filter(MTValue.mapTable == mapping_table).\
-                                         order_by(MTValue.variable).\
-                                         all()
+                        if second_id != "":
+                            pastinfo2 = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+                                    filter(MTIndex.idxMapID == select2_id.id).\
+                                    filter(MTIndex.index == second_id).\
+                                    all()
+                            description2 = pastinfo2[0].description1 + " " + pastinfo2[0].description2
 
-                        variables = []
-                        for var in distinct_vars:
-                            variables.append(var[0])
+                        # Create new index value
+                        new_indice = MTIndex(row[0], description1, description2)
+                        new_indice.indexMap = new_index
+                        for mapping_table in mapTables:
+                            distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
+                                             filter(MTValue.mapTable == mapping_table).\
+                                             order_by(MTValue.variable).\
+                                             all()
 
-                        for variable in variables:
-                            new_value = MTValue(variable, 0)
-                            new_value.mapTable = mapping_table
-                            new_value.index = new_indice
+                            variables = []
+                            for var in distinct_vars:
+                                variables.append(var[0])
 
-                        gsshapy_session.commit()
+                            for variable in variables:
+                                new_value = MTValue(variable, 0)
+                                new_value.mapTable = mapping_table
+                                new_value.index = new_indice
 
-            # Delete indices that aren't present
-            for index in indices:
-                if not int(index[0]) in ids:
-                    bob = gsshapy_session.query(MTIndex).get(index.id)
-                    for val in bob.values:
-                        gsshapy_session.delete(val)
-                    gsshapy_session.delete(bob)
-            gsshapy_session.commit()
+                            gsshapy_session.commit()
 
-            index_raster.mapTables[map_table_count].numIDs = numberIDs
-            gsshapy_session.commit()
-            map_table_count +=1
+                # Delete indices that aren't present
+                for index in indices:
+                    if not int(index[0]) in ids:
+                        bob = gsshapy_session.query(MTIndex).get(index.id)
+                        for val in bob.values:
+                            gsshapy_session.delete(val)
+                        gsshapy_session.delete(bob)
+                gsshapy_session.commit()
 
-        indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
-                               join(MTValue).\
-                               filter(MTValue.mapTable == mapTables[0]).\
-                               order_by(MTIndex.index).\
-                               all()
+                new_index.mapTables[map_table_count].numIDs = numberIDs
+                gsshapy_session.commit()
+                map_table_count +=1
+
+            indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+                                   join(MTValue).\
+                                   filter(MTValue.mapTable == mapTables[0]).\
+                                   order_by(MTIndex.index).\
+                                   all()
 
 
-        index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == map_name).one()
+            index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
 
-        # Specify the workspace
-        controllerDir = os.path.abspath(os.path.dirname(__file__))
-        gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
-        publicDir = os.path.join(gsshaindexDir,'public')
-        userDir = os.path.join(publicDir, str(user))
-        indexMapDir = os.path.join(userDir, 'index_maps')
+            # Specify the workspace
+            controllerDir = os.path.abspath(os.path.dirname(__file__))
+            gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+            publicDir = os.path.join(gsshaindexDir,'public')
+            userDir = os.path.join(publicDir, str(user))
+            indexMapDir = os.path.join(userDir, 'index_maps')
 
-        # Create kml file name and path
-        current_time = time.strftime("%Y%m%dT%H%M%S")
-        resource_name = index_raster.name + "_" + str(user_id) + "_" + current_time
-        kml_ext = resource_name + '.kml'
-        clusterFile = os.path.join(indexMapDir, kml_ext)
+            # Create kml file name and path
+            current_time = time.strftime("%Y%m%dT%H%M%S")
+            resource_name = index_raster.name + "_" + str(user) + "_" + current_time
+            kml_ext = resource_name + '.kml'
+            clusterFile = os.path.join(indexMapDir, kml_ext)
 
-        # Generate color ramp
-        index_raster.getAsKmlClusters(session=gsshapy_session,
-                                       path = clusterFile,
-                                       colorRamp = ColorRampEnum.COLOR_RAMP_HUE,
-                                       alpha=0.6)
+            index_map_dataset = gi_lib.check_dataset("index-maps", CKAN_engine)
 
-        resource, status = gi_lib.add_kml_CKAN(user_id, password, c, clusterFile, resource_name, index_raster.name)
+            # Generate color ramp
+            index_raster.getAsKmlClusters(session=gsshapy_session, path = clusterFile, colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.6)
 
-        temp_list = json.loads(job.current_kmls)
+            resource, status = gi_lib.add_kml_CKAN(index_map_dataset, CKAN_engine, clusterFile, resource_name)
 
-        if status == True:
-            for item in temp_list:
-                    if item == c.map_name:
-                        del temp_list[item]
-                        temp_list[c.map_name] = {'url':resource['url'], 'full_name':resource['name']}
-                        break
+            temp_list = json.loads(job.current_kmls)
 
-        job.current_kmls = json.dumps(temp_list)
-        job_session.commit()
+            if status == True:
+                for item in temp_list:
+                        if item == index_name:
+                            del temp_list[item]
+                            temp_list[index_name] = {'url':resource['url'], 'full_name':resource['name']}
+                            break
 
-        return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'map_name':index_name, 'mapping_table':"0"}))
+            job.current_kmls = json.dumps(temp_list)
+            job_session.commit()
+
+            return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':'0'}))
 
 
     # Set the first index as the active one
-    index_name = str(resource_names[0])
+    index_names = str(resource_names[0])
 
     # Set up map properties
     editable_map = {'height': '400px',
                       'width': '100%',
-                      'reference_kml_action': '/apps/gsshaindex/' + job_id + '/get-index-maps/' + index_name,
+                      'reference_kml_action': '/apps/gsshaindex/' + job_id + '/get-index-maps/' + index_names,
                       'maps_api_key':maps_api_key,
                       'drawing_types_enabled':[]}
 
-    context['index_name'] = index_name
+    context['replaced_index'] = index_name
+    context['index_name'] = index_names
     context['google_map'] = editable_map
     context['select_input1'] = select_input1
     context['select_input2'] = select_input2

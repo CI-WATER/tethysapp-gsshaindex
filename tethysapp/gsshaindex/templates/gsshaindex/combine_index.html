@@ -13,11 +13,10 @@
 {% endblock %}
 
 {% block primary_content %}
-   	<h1 class="heading_title">Index Maps to Replace: {{index_name}}</h1>
-    <form id="map_edits" method="post" action="{% url 'gsshaindex:submit_edits' index_name=index_name job_id=job_id %}">
-        {% csrf_token %}
+   	<h1 class="heading_title">Index Maps to Replace: {{replaced_index}}</h1>
         {% gizmo editable_google_map google_map %}
-    <form id="submit_combo" method="post" action="{% url 'gsshaindex:combine_index' index_name=index_name job_id=job_id %}">
+    <form id="submit_combo" method="post" action="{% url 'gsshaindex:combine_index' index_name=replaced_index job_id=job_id %}">
+            {% csrf_token %}
 	    	<h3>Select the two index maps you'd like to combine or the one that you'd like to replace it with.</h3>
 			{% gizmo select_input select_input1 %}
 			{% gizmo select_input select_input2 %}
