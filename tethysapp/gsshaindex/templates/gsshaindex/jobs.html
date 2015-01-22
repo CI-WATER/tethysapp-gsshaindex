@@ -26,9 +26,9 @@
                     <tr>
                         <td class="name" data-id="{{ job.2 }}">{{job.0}}</td>
                         <td class="status" data-id="{{ job.2 }}" data-status="{{job.1}}">{{job.1}}</td>
-                        <td><a class="btn btn-mini btn-success" href="{% url 'gsshaindex:fly' job_id=job.2 %}">Run</a></td>
+                        {% if job.1 == "ready to run" %}<td><a class="btn btn-mini btn-success" href="{% url 'gsshaindex:fly' job_id=job.2 %}">Run</a></td>{% else %}<td><a class="btn btn-mini btn-success" style="visibility:hidden;" href="{% url 'gsshaindex:fly' job_id=job.2 %}">Run</a></td>{% endif %}
                         <td><a class="btn btn-mini btn-danger" href="{% url 'gsshaindex:delete' job_id=job.2 return_to='jobs' %}">Delete</a></td>
-                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:results' view_type='newMax' job_id=job.2 %}">View Results</a></td>
+                        {% if job.1 == "complete" %}<td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:results' view_type='newMax' job_id=job.2 %}">View Results</a></td>{% else %}<td><a class="btn btn-mini btn-info" style="visibility:hidden;" href="{% url 'gsshaindex:results' view_type='newMax' job_id=job.2 %}">View Results</a></td>{% endif %}
                     </tr>
                 {% endfor %}
             </table>

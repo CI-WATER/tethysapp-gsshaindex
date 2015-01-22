@@ -59,6 +59,18 @@ def get_new_job(job_id, user_id, session):
         job = ""
         return job, success
 
+# def create_duplicate_job(job_id, user_id, session):
+#     # Get the job and project file id from the database and duplicate
+#
+#     original_job = session.query(Jobs).\
+#                 filter(Jobs.user_id == user_id).\
+#                 filter(Jobs.original_id == job_id).\
+#                 filter(Jobs.status == "new").one()
+#
+#     new_job = Jobs(name=original_job.original_name, user_id=user_id, original_description=original_job.original_description, original_id=job_id, original_url=original_job.original_url, original_certification=original_job.original_certification)
+#
+#     return new_job
+
 def get_pending_job(job_id, user_id, session):
     # Get the job and project file id from the database
     success = True

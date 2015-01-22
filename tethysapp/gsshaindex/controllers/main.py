@@ -580,7 +580,7 @@ def fly(request, job_id):
             result, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, resultsFile, CKAN_engine, resource_name, "", pretty_date, user, certification="Certified")
 
             job.original_certification = "Certified"
-            session.commit()
+            # session.commit()
 
             # Publish link to table
             # results.append(result['url'])
@@ -602,6 +602,7 @@ def fly(request, job_id):
     job.status = status
     job.result_urls = results_urls
     session.commit()
+    session.close()
 
 
     return redirect(reverse('gsshaindex:status'))
@@ -725,6 +726,8 @@ def results(request, job_id, view_type):
                     'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
                     'maps_api_key':maps_api_key}
 
+    session.close()
+
     context['hydrograph'] = hydrograph
     context['google_map'] = google_map
     context['map_type'] = view_type
@@ -826,6 +829,7 @@ def get_depth_map(request, job_id, view_type):
     else:
         kml_link=""
 
+    session.close()
 
     return JsonResponse({'kml_links': kml_link})
 

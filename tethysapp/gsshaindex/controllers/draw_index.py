@@ -124,12 +124,16 @@ def submit_edits(request, job_id, index_name):
     #Create session
     gsshapy_session = gsshapy_sessionmaker()
 
+    print "Edits being submitted bob"
+
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
     gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
     publicDir = os.path.join(gsshaindexDir,'public')
     userDir = os.path.join(publicDir, str(user))
     indexMapDir = os.path.join(userDir, 'index_maps')
+    print("PING1")
+
 
     # Use project id to link to original map table file
     project_file = gsshapy_session.query(ProjectFile).filter(ProjectFile.id == project_file_id).one()
@@ -137,117 +141,130 @@ def submit_edits(request, job_id, index_name):
     mask_file = gsshapy_session.query(RasterMapFile).filter(RasterMapFile.projectFileID == project_file_id).filter(RasterMapFile.fileExtension == "msk").one()
 
     mapTables = index_raster.mapTables
+    print("PING2")
 
-    jsonGeom = json.loads(params['geometry'])
-    geometries= jsonGeom['geometries']
 
-    #Convert from json to WKT
-    for geometry in geometries:
-        wkt = geometry['wkt']
+    # If some geometry is submitted, go and run the necessary steps to change the map
+    if params['geometry']:
+        print "Geometry submitted"
+        jsonGeom = json.loads(params['geometry'])
+        geometries= jsonGeom['geometries']
 
-        value = geometry['properties']['value']
-        print "WKT: ", value
+        #Convert from json to WKT
+        for geometry in geometries:
+            wkt = geometry['wkt']
 
-        #Loop through indices and see if they match
-        index_raster_indices = index_raster.indices
-        index_present = False
-        for index in index_raster_indices:
-            print index
-            if int(index.index) == int(value):
-                index_present = True
-                break
+            value = geometry['properties']['value']
+            print "WKT: ", value
 
-        print "Index Present? ", index_present
+            #Loop through indices and see if they match
+            index_raster_indices = index_raster.indices
+            index_present = False
+            for index in index_raster_indices:
+                print index
+                if int(index.index) == int(value):
+                    index_present = True
+                    break
 
-        # Create new index value if it doesn't exist and add change the number of ids
-        if index_present == False:
-            new_indice = MTIndex(value, "", "")
-            new_indice.indexMap = index_raster
-            for mapping_table in mapTables:
-                print "Mapping Table:", mapping_table
-                distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
-                                 filter(MTValue.mapTable == mapping_table).\
-                                 order_by(MTValue.variable).\
-                                 all()
-                print "Distinct Vars: ", distinct_vars
-                variables = []
-                for var in distinct_vars:
-                    variables.append(var[0])
+            print "Index Present? ", index_present
 
-                for variable in variables:
-                    print variable
-                    new_value = MTValue(variable, 0)
-                    new_value.mapTable = mapping_table
-                    new_value.index = new_indice
+            # Create new index value if it doesn't exist and add change the number of ids
+            if index_present == False:
+                new_indice = MTIndex(value, "", "")
+                new_indice.indexMap = index_raster
+                for mapping_table in mapTables:
+                    print "Mapping Table:", mapping_table
+                    distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
+                                     filter(MTValue.mapTable == mapping_table).\
+                                     order_by(MTValue.variable).\
+                                     all()
+                    print "Distinct Vars: ", distinct_vars
+                    variables = []
+                    for var in distinct_vars:
+                        variables.append(var[0])
 
-        if project_file.srid == None:
-            srid = 26912
-        else:
-            srid = project_file.srid
+                    for variable in variables:
+                        print variable
+                        new_value = MTValue(variable, 0)
+                        new_value.mapTable = mapping_table
+                        new_value.index = new_indice
 
-            gsshapy_session.commit()
-        print "id1: ", index_raster.id
-        # Change values in the index map
-        statement = '''UPDATE idx_index_maps
-                        SET raster = ST_SetValue(raster,1, ST_Transform(ST_GeomFromText(\''''+ unicode(wkt) +'''\',4326),'''+ unicode(srid) +'''),'''+ unicode(value) +''')
-                        WHERE id = '''+ unicode(index_raster.id) +''';
+            if project_file.srid == None:
+                srid = 26912
+            else:
+                srid = project_file.srid
+
+                # gsshapy_session.commit()
+            # print "id1: ", index_raster.id
+
+            # Change values in the index map
+            different_statement = "UPDATE idx_index_maps SET raster = ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) WHERE id = {3};".format(wkt, srid, value, index_raster.id)
+
+            print "VARS1: ", wkt, srid, value, index_raster.id
+            gsshapy_session.close()
+            gsshapy_session = gsshapy_sessionmaker()
+            result = gsshapy_engine.execute(different_statement)
+            print "statement2: ", different_statement
+
+
+        print "id: ", index_raster.id
+        # Crop the index map by the mask map
+        statementclip = ''' UPDATE idx_index_maps
+                            SET raster = ST_MapAlgebra(
+                            (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +'''),1,
+                            (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(mask_file.id) +'''),1,
+                            '([rast1]*[rast2])'
+                            )
+                            WHERE id = '''+ unicode(index_raster.id) +''';
                         '''
-        result = gsshapy_engine.execute(statement)
 
-        gsshapy_session.commit()
+        # Get the values in the index map
+        statement3 = '''SELECT (pvc).*
+                        FROM (SELECT ST_ValueCount(raster,1,true) As pvc
+                        FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +''') AS foo
+                        ORDER BY (pvc).value;
+                        '''
+    #         result2 = gsshapy_engine.execute(statementclip)
+        result3 = gsshapy_engine.execute(statement3)
 
-    print "id: ", index_raster.id
-    # Crop the index map by the mask map
-    statementclip = ''' UPDATE idx_index_maps
-                        SET raster = ST_MapAlgebra(
-                        (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +'''),1,
-                        (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(mask_file.id) +'''),1,
-                        '([rast1]*[rast2])'
-                        )
-                        WHERE id = '''+ unicode(index_raster.id) +''';
-                    '''
+        numberIDs = 0
+        ids = []
+        for row in result3:
+            numberIDs +=1
+            ids.append(row.value)
 
-    # Get the values in the index map
-    statement3 = '''SELECT (pvc).*
-                    FROM (SELECT ST_ValueCount(raster,1,true) As pvc
-                    FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +''') AS foo
-                    ORDER BY (pvc).value;
-                    '''
-#         result2 = gsshapy_engine.execute(statementclip)
-    result3 = gsshapy_engine.execute(statement3)
+            # index_raster.mapTables[mapTableNumber].numIDs = numberIDs
+    #         gsshapy_session.commit()
 
-    numberIDs = 0
-    ids = []
-    for row in result3:
-        numberIDs +=1
-        ids.append(row.value)
+        map_table_count = 0
+        for mapping_table in mapTables:
 
-#         index_raster.mapTables[mapTableNumber].numIDs = numberIDs
-#         gsshapy_session.commit()
+            index_raster.mapTables[map_table_count].numIDs = numberIDs
+            # gsshapy_session.commit()
 
-    map_table_count = 0
-    for mapping_table in mapTables:
+            indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+                                   join(MTValue).\
+                                   filter(MTValue.mapTable == mapTables[map_table_count]).\
+                                   order_by(MTIndex.index).\
+                                   all()
 
-        index_raster.mapTables[map_table_count].numIDs = numberIDs
-        gsshapy_session.commit()
+            for index in indices:
+                if not int(index[0]) in ids:
+                    bob = gsshapy_session.query(MTIndex).get(index.id)
+                    for val in bob.values:
+                        gsshapy_session.delete(val)
+                    gsshapy_session.delete(bob)
 
-        indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
-                               join(MTValue).\
-                               filter(MTValue.mapTable == mapTables[map_table_count]).\
-                               order_by(MTIndex.index).\
-                               all()
+            map_table_count +=1
 
-        for index in indices:
-            if not int(index[0]) in ids:
-                bob = gsshapy_session.query(MTIndex).get(index.id)
-                for val in bob.values:
-                    gsshapy_session.delete(val)
-                gsshapy_session.delete(bob)
+            print ids
 
-        gsshapy_session.commit()
-        map_table_count +=1
+    else:
+        print('PING 3')
+        messages.error(request, "You must make edits to submit")
 
-    print ids
+
+    gsshapy_session.commit()
 
     index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
 
@@ -274,6 +291,8 @@ def submit_edits(request, job_id, index_name):
 
     job.current_kmls = json.dumps(temp_list)
     job_session.commit()
+    job_session.close()
+    gsshapy_session.close()
 
     context['index_name'] = index_name
     context['job_id'] = job_id
