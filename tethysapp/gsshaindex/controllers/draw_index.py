@@ -48,6 +48,7 @@ def edit_index(request, job_id, index_name):
     mapTables = new_index.mapTables
     indices = new_index.indices
 
+
     # Get list of index files
     resource_list = json.loads(job.current_kmls)
 
@@ -83,7 +84,8 @@ def edit_index(request, job_id, index_name):
 
         job.current_kmls = json.dumps(resource_list)
 
-        job_session.commit()
+    job_session.commit()
+    job_session.close()
 
     # Set up map properties
     editable_map = {'height': '600px',
@@ -121,10 +123,8 @@ def submit_edits(request, job_id, index_name):
     # Get project file id
     project_file_id = job.new_model_id
 
-    #Create session
+    # Create session
     gsshapy_session = gsshapy_sessionmaker()
-
-    print "Edits being submitted bob"
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -132,17 +132,14 @@ def submit_edits(request, job_id, index_name):
     publicDir = os.path.join(gsshaindexDir,'public')
     userDir = os.path.join(publicDir, str(user))
     indexMapDir = os.path.join(userDir, 'index_maps')
-    print("PING1")
-
 
     # Use project id to link to original map table file
     project_file = gsshapy_session.query(ProjectFile).filter(ProjectFile.id == project_file_id).one()
     index_raster = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
     mask_file = gsshapy_session.query(RasterMapFile).filter(RasterMapFile.projectFileID == project_file_id).filter(RasterMapFile.fileExtension == "msk").one()
 
+    # Get a list of the map tables for the index map
     mapTables = index_raster.mapTables
-    print("PING2")
-
 
     # If some geometry is submitted, go and run the necessary steps to change the map
     if params['geometry']:
@@ -150,14 +147,14 @@ def submit_edits(request, job_id, index_name):
         jsonGeom = json.loads(params['geometry'])
         geometries= jsonGeom['geometries']
 
-        #Convert from json to WKT
+        # Convert from json to WKT
         for geometry in geometries:
             wkt = geometry['wkt']
 
             value = geometry['properties']['value']
             print "WKT: ", value
 
-            #Loop through indices and see if they match
+            # Loop through indices and see if they match
             index_raster_indices = index_raster.indices
             index_present = False
             for index in index_raster_indices:
@@ -168,7 +165,7 @@ def submit_edits(request, job_id, index_name):
 
             print "Index Present? ", index_present
 
-            # Create new index value if it doesn't exist and add change the number of ids
+            # Create new index value if it doesn't exist and change the number of ids
             if index_present == False:
                 new_indice = MTIndex(value, "", "")
                 new_indice.indexMap = index_raster
@@ -188,23 +185,17 @@ def submit_edits(request, job_id, index_name):
                         new_value = MTValue(variable, 0)
                         new_value.mapTable = mapping_table
                         new_value.index = new_indice
+                gsshapy_session.commit()
 
             if project_file.srid == None:
                 srid = 26912
             else:
                 srid = project_file.srid
 
-                # gsshapy_session.commit()
-            # print "id1: ", index_raster.id
-
             # Change values in the index map
             different_statement = "UPDATE idx_index_maps SET raster = ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) WHERE id = {3};".format(wkt, srid, value, index_raster.id)
 
-            print "VARS1: ", wkt, srid, value, index_raster.id
-            gsshapy_session.close()
-            gsshapy_session = gsshapy_sessionmaker()
             result = gsshapy_engine.execute(different_statement)
-            print "statement2: ", different_statement
 
 
         print "id: ", index_raster.id
@@ -233,18 +224,13 @@ def submit_edits(request, job_id, index_name):
             numberIDs +=1
             ids.append(row.value)
 
-            # index_raster.mapTables[mapTableNumber].numIDs = numberIDs
-    #         gsshapy_session.commit()
-
-        map_table_count = 0
         for mapping_table in mapTables:
 
             index_raster.mapTables[map_table_count].numIDs = numberIDs
-            # gsshapy_session.commit()
 
-            indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
+            indices = gsshapy_session.query(MTIndex.index, MTIndex.id, MTIndex.description1, MTIndex.description2).\
                                    join(MTValue).\
-                                   filter(MTValue.mapTable == mapTables[map_table_count]).\
+                                   filter(MTValue.mapTable == mapping_table).\
                                    order_by(MTIndex.index).\
                                    all()
 
@@ -254,45 +240,38 @@ def submit_edits(request, job_id, index_name):
                     for val in bob.values:
                         gsshapy_session.delete(val)
                     gsshapy_session.delete(bob)
+                gsshapy_session.commit()
 
-            map_table_count +=1
+        index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
 
-            print ids
+        # Create kml file name and path
+        current_time = time.strftime("%Y%m%dT%H%M%S")
+        resource_name = index_raster.name + "_" + str(user) + "_" + current_time
+        kml_ext = resource_name + '.kml'
+        clusterFile = os.path.join(indexMapDir, kml_ext)
+
+        # Generate color ramp
+        index_raster.getAsKmlClusters(session=gsshapy_session, path=clusterFile, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=0.6)
+
+        index_map_dataset = gi_lib.check_dataset("index-maps", CKAN_engine)
+        resource, status = gi_lib.add_kml_CKAN(index_map_dataset, CKAN_engine, clusterFile, resource_name)
+
+        temp_list = json.loads(job.current_kmls)
+
+        if status == True:
+            for item in temp_list:
+                    if item == index_name:
+                        del temp_list[item]
+                        temp_list[index_name] = {'url':resource['url'], 'full_name':resource['name']}
+                        break
+
+        job.current_kmls = json.dumps(temp_list)
+        job_session.commit()
+        job_session.close()
+        gsshapy_session.close()
 
     else:
-        print('PING 3')
         messages.error(request, "You must make edits to submit")
-
-
-    gsshapy_session.commit()
-
-    index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
-
-    # Create kml file name and path
-    current_time = time.strftime("%Y%m%dT%H%M%S")
-    resource_name = index_raster.name + "_" + str(user) + "_" + current_time
-    kml_ext = resource_name + '.kml'
-    clusterFile = os.path.join(indexMapDir, kml_ext)
-
-    # Generate color ramp
-    index_raster.getAsKmlClusters(session=gsshapy_session, path=clusterFile, colorRamp=ColorRampEnum.COLOR_RAMP_HUE, alpha=0.6)
-
-    index_map_dataset = gi_lib.check_dataset("index-maps", CKAN_engine)
-    resource, status = gi_lib.add_kml_CKAN(index_map_dataset, CKAN_engine, clusterFile, resource_name)
-
-    temp_list = json.loads(job.current_kmls)
-
-    if status == True:
-        for item in temp_list:
-                if item == index_name:
-                    del temp_list[item]
-                    temp_list[index_name] = {'url':resource['url'], 'full_name':resource['name']}
-                    break
-
-    job.current_kmls = json.dumps(temp_list)
-    job_session.commit()
-    job_session.close()
-    gsshapy_session.close()
 
     context['index_name'] = index_name
     context['job_id'] = job_id

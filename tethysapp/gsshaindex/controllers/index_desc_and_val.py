@@ -98,6 +98,8 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                            order_by(MTIndex.index).\
                            all()
 
+    print "INDICES", indices
+
     # Get all the values to populate the table
     var_values = []
     for var in variables:
@@ -115,6 +117,9 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                       'width': '100%',
                       'kml_service': '/apps/gsshaindex/' + job_id + '/get-index-maps/' + index_name,
                       'maps_api_key':maps_api_key}
+
+    print "VARS",  variables
+    print "VALUES", var_values
 
     context['indices'] = indices
     context['job_id'] = job_id

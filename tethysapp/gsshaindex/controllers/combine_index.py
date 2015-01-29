@@ -180,7 +180,7 @@ def combine_index(request, job_id, index_name):
                                 new_value.mapTable = mapping_table
                                 new_value.index = new_indice
 
-                            gsshapy_session.commit()
+                            # gsshapy_session.commit()
 
                 # Delete indices that aren't present
                 for index in indices:
@@ -189,10 +189,10 @@ def combine_index(request, job_id, index_name):
                         for val in bob.values:
                             gsshapy_session.delete(val)
                         gsshapy_session.delete(bob)
-                gsshapy_session.commit()
+                # gsshapy_session.commit()
 
                 new_index.mapTables[map_table_count].numIDs = numberIDs
-                gsshapy_session.commit()
+                # gsshapy_session.commit()
                 map_table_count +=1
 
             indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
@@ -234,10 +234,14 @@ def combine_index(request, job_id, index_name):
                             break
 
             job.current_kmls = json.dumps(temp_list)
-            job_session.commit()
+            # job_session.commit()
 
             return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':'0'}))
 
+    job_session.commit()
+    gsshapy_session.commit()
+    job_session.close()
+    gsshapy_session.close()
 
     # Set the first index as the active one
     index_names = str(resource_names[0])
