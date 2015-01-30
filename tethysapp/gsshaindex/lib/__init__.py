@@ -11,6 +11,7 @@ from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engin
 from gsshapy.orm import ProjectFile
 from datetime import datetime
 from os import path
+from multiprocessing import Process, Queue
 
 # Get app.ini
 gsshaindex_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -417,4 +418,20 @@ def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, n
     except:
         result={'url':""}
 
+    return result
+
+def execute_sql(statement, result_queue):
+    result_queue.put(gsshapy_engine.execute(statement))
+
+def execute_sql_with_timeout(different_statement, timeout):
+    result_queue = Queue()
+    process = Process(target=execute_sql, args=(different_statement, result_queue))
+    process.start()
+    process.join(timeout)
+    result = result_queue.get()
+    print result3
+    if process.is_alive():
+        process.terminate()
+        # TODO: handel failure
+        print "IT DIED"
     return result

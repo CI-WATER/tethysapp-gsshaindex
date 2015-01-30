@@ -193,21 +193,16 @@ def submit_edits(request, job_id, index_name):
                 srid = project_file.srid
 
             # Change values in the index map
-            different_statement = "UPDATE idx_index_maps SET raster = ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) WHERE id = {3};".format(wkt, srid, value, index_raster.id)
+            different_statement = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
 
-            result = gsshapy_engine.execute(different_statement)
+            # result = gsshapy_engine.execute(different_statement)
+            result = gi_lib.execute_sql_with_timeout(different_statement, 5)
 
+            for row in result:
+                second_different_statement = "UPDATE idx_index_maps SET raster = '{0}'".format(row[0])
+                result2 = gsshapy_engine.execute(second_different_statement)
 
-        print "id: ", index_raster.id
-        # Crop the index map by the mask map
-        statementclip = ''' UPDATE idx_index_maps
-                            SET raster = ST_MapAlgebra(
-                            (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +'''),1,
-                            (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(mask_file.id) +'''),1,
-                            '([rast1]*[rast2])'
-                            )
-                            WHERE id = '''+ unicode(index_raster.id) +''';
-                        '''
+            print "THIS WORKED!!!!!!"
 
         # Get the values in the index map
         statement3 = '''SELECT (pvc).*
@@ -215,8 +210,10 @@ def submit_edits(request, job_id, index_name):
                         FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +''') AS foo
                         ORDER BY (pvc).value;
                         '''
-    #         result2 = gsshapy_engine.execute(statementclip)
-        result3 = gsshapy_engine.execute(statement3)
+
+        # result3 = gsshapy_engine.execute(statement3)
+
+        result3 = gi_lib.execute_sql_with_timeout(statement3, 5)
 
         numberIDs = 0
         ids = []
