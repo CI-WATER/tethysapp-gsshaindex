@@ -151,6 +151,7 @@ def submit_edits(request, job_id, index_name):
         for geometry in geometries:
             wkt = geometry['wkt']
 
+            # Get the values for the geometry
             value = geometry['properties']['value']
             print "WKT: ", value
 
@@ -170,18 +171,15 @@ def submit_edits(request, job_id, index_name):
                 new_indice = MTIndex(value, "", "")
                 new_indice.indexMap = index_raster
                 for mapping_table in mapTables:
-                    print "Mapping Table:", mapping_table
                     distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
                                      filter(MTValue.mapTable == mapping_table).\
                                      order_by(MTValue.variable).\
                                      all()
-                    print "Distinct Vars: ", distinct_vars
                     variables = []
                     for var in distinct_vars:
                         variables.append(var[0])
 
                     for variable in variables:
-                        print variable
                         new_value = MTValue(variable, 0)
                         new_value.mapTable = mapping_table
                         new_value.index = new_indice
@@ -194,10 +192,16 @@ def submit_edits(request, job_id, index_name):
 
             # Change values in the index map
             different_statement = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
+            result = gsshapy_engine.execute(different_statement)
+            # result = gi_lib.timeout(gsshapy_engine.execute,(different_statement,),timeout=5,default=None)
+            # result = gi_lib.execute_sql_with_timeout(different_statement, 5)
 
-            # result = gsshapy_engine.execute(different_statement)
-            result = gi_lib.execute_sql_with_timeout(different_statement, 5)
+            if result == None:
+                print "THIS DIDN'T WORK"
 
+            print "RESULT", result
+
+            # Update the index map in the database
             for row in result:
                 second_different_statement = "UPDATE idx_index_maps SET raster = '{0}'".format(row[0])
                 result2 = gsshapy_engine.execute(second_different_statement)
@@ -210,10 +214,8 @@ def submit_edits(request, job_id, index_name):
                         FROM idx_index_maps WHERE id = '''+ unicode(index_raster.id) +''') AS foo
                         ORDER BY (pvc).value;
                         '''
-
-        # result3 = gsshapy_engine.execute(statement3)
-
-        result3 = gi_lib.execute_sql_with_timeout(statement3, 5)
+        result3 = gsshapy_engine.execute(statement3)
+        # result3 = gi_lib.execute_sql_with_timeout(statement3, 5)
 
         numberIDs = 0
         ids = []
@@ -221,6 +223,7 @@ def submit_edits(request, job_id, index_name):
             numberIDs +=1
             ids.append(row.value)
 
+        map_table_count = 0
         for mapping_table in mapTables:
 
             index_raster.mapTables[map_table_count].numIDs = numberIDs
@@ -237,7 +240,8 @@ def submit_edits(request, job_id, index_name):
                     for val in bob.values:
                         gsshapy_session.delete(val)
                     gsshapy_session.delete(bob)
-                gsshapy_session.commit()
+            gsshapy_session.commit()
+            map_table_count +=1
 
         index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
 

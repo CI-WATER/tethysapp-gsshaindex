@@ -420,18 +420,42 @@ def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, n
 
     return result
 
-def execute_sql(statement, result_queue):
-    result_queue.put(gsshapy_engine.execute(statement))
+# def execute_sql(statement, result_queue):
+#     result_queue.put(gsshapy_engine.execute(statement))
+#
+# def execute_sql_with_timeout(different_statement, timeout):
+#     result_queue = Queue()
+#     process = Process(target=execute_sql, args=(different_statement, result_queue))
+#     process.start()
+#     process.join(timeout)
+#     result = result_queue.get()
+#     print result3
+#     if process.is_alive():
+#         process.terminate()
+#         # TODO: handel failure
+#         print "IT DIED"
+#     return result
 
-def execute_sql_with_timeout(different_statement, timeout):
-    result_queue = Queue()
-    process = Process(target=execute_sql, args=(different_statement, result_queue))
-    process.start()
-    process.join(timeout)
-    result = result_queue.get()
-    print result3
-    if process.is_alive():
-        process.terminate()
-        # TODO: handel failure
-        print "IT DIED"
-    return result
+def timeout(func, args=(), kwargs={}, timeout=1, default=None):
+	from multiprocessing import Process, Queue
+	class QProcess(Process):
+		def __init__(self, q):
+			super(QProcess, self).__init__()
+			self.q = q
+
+		def run(self):
+			try:
+				result = func(*args, **kwargs)
+				q.put(result)
+			except:
+				q.put(default)
+
+	q = Queue()
+	p = QProcess(q)
+	p.start()
+	p.join(timeout)
+	if p.is_alive():
+		p.terminate()
+		return default
+	else:
+		return q.get()
