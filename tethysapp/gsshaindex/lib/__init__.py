@@ -420,42 +420,98 @@ def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, n
 
     return result
 
-# def execute_sql(statement, result_queue):
-#     result_queue.put(gsshapy_engine.execute(statement))
-#
-# def execute_sql_with_timeout(different_statement, timeout):
-#     result_queue = Queue()
-#     process = Process(target=execute_sql, args=(different_statement, result_queue))
-#     process.start()
-#     process.join(timeout)
-#     result = result_queue.get()
-#     print result3
-#     if process.is_alive():
-#         process.terminate()
-#         # TODO: handel failure
-#         print "IT DIED"
-#     return result
 
-def timeout(func, args=(), kwargs={}, timeout=1, default=None):
-	from multiprocessing import Process, Queue
-	class QProcess(Process):
-		def __init__(self, q):
-			super(QProcess, self).__init__()
-			self.q = q
+def timeout(func, args=(), kwargs={}, timeout=1, default=None, result_can_be_pickled=True):
+	"""
+	a wrapper function that allows a timeout to be set for the given function (func)
 
-		def run(self):
-			try:
-				result = func(*args, **kwargs)
-				q.put(result)
-			except:
-				q.put(default)
+	arg: func - a function to be executed with timeout
+	arg: args - a tuple of arguments for func
+	arg: kwargs - a dictionary of key-word arguments for func
+	arg: timeout - the amount of time in second to wait for func before timeing out
+	arg: default - the value to return if func timesout before completing
+	arg: result_can_be_pickled - boolean stating weather the result of func is picklable (default=True)
 
-	q = Queue()
-	p = QProcess(q)
-	p.start()
-	p.join(timeout)
-	if p.is_alive():
-		p.terminate()
-		return default
+	return: the return value from func or default
+	"""
+	if result_can_be_pickled:
+		from multiprocessing import Process, Manager
+		import thread
+		class TimedProcess(Process):
+			def __init__(self, l):
+				super(TimedProcess, self).__init__()
+				self.list = l
+
+			def run(self):
+				try:
+					result = func(*args, **kwargs)
+					self.list.append(result)
+				except Exception as e:
+					self.list.append(e)
+
+		mng = Manager()
+		l = mng.list()
+		p = TimedProcess(l)
+		p.start()
+		p.join(timeout)
+		if p.is_alive():
+			p.terminate()
+			return default
+		else:
+			return l[0]
 	else:
-		return q.get()
+		import time #, KeyboardInterrupt
+
+
+		try:
+			import thread as _thread
+			import threading as _threading
+		except ImportError:
+			import dummy_thread as _thread
+			import dummy_threading as _threading
+			pass
+
+		start = time.time()
+
+		def interrupt():
+			print 'interrupting ', time.time() - start
+			_thread.interrupt_main()
+
+		result = default
+		try:
+			t = _threading.Timer(timeout, interrupt)
+			t.start()
+			start = time.time()
+			result = func(*args, **kwargs)
+			t.cancel()
+		except KeyboardInterrupt as e:
+			pass
+		return result
+
+
+def set_timeout(timeout_wait, default=None, result_can_be_pickled=True):
+	"""
+	a decorator for the timeout function above
+
+	USAGE:  @set_timeout(1, None)
+			def func():
+				. . .
+
+	arg: timeout_wait - the amount of time in second to wait for function to complete
+	arg: default - the return value of the function if the function times out before completing
+	"""
+	def decorator(function):
+		def function_wrapper(*args, **kwargs):
+			return timeout(function, args=args, kwargs=kwargs,
+				timeout=timeout_wait, default=default,
+				result_can_be_pickled=result_can_be_pickled)
+		return function_wrapper
+	return decorator
+
+def draw_update_index(statement):
+    result = gsshapy_engine.execute(statement)
+    for row in result:
+        second_different_statement = "UPDATE idx_index_maps SET raster = '{0}'".format(row[0])
+        result2 = gsshapy_engine.execute(second_different_statement)
+        result = True
+    return result

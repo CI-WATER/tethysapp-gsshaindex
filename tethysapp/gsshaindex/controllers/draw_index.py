@@ -17,7 +17,6 @@ from mapkit.ColorRampGenerator import ColorRampEnum
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
 
-
 def edit_index(request, job_id, index_name):
     """
     Controller for the edit index by manually drawing in edits page.
@@ -192,19 +191,15 @@ def submit_edits(request, job_id, index_name):
 
             # Change values in the index map
             different_statement = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
-            result = gsshapy_engine.execute(different_statement)
-            # result = gi_lib.timeout(gsshapy_engine.execute,(different_statement,),timeout=5,default=None)
-            # result = gi_lib.execute_sql_with_timeout(different_statement, 5)
+
+            result = gi_lib.timeout(gi_lib.draw_update_index, args=(different_statement,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
+
+
+            '''EXPERIMENT DONE'''
 
             if result == None:
                 print "THIS DIDN'T WORK"
-
-            print "RESULT", result
-
-            # Update the index map in the database
-            for row in result:
-                second_different_statement = "UPDATE idx_index_maps SET raster = '{0}'".format(row[0])
-                result2 = gsshapy_engine.execute(second_different_statement)
+                #TODO Write code for when it doesn't work'
 
             print "THIS WORKED!!!!!!"
 
@@ -215,7 +210,6 @@ def submit_edits(request, job_id, index_name):
                         ORDER BY (pvc).value;
                         '''
         result3 = gsshapy_engine.execute(statement3)
-        # result3 = gi_lib.execute_sql_with_timeout(statement3, 5)
 
         numberIDs = 0
         ids = []

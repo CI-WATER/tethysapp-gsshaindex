@@ -83,7 +83,8 @@ def combine_index(request, job_id, index_name):
                                   )
                                 WHERE id = '''+ unicode(new_index.id) +''';
                             '''
-            result = gsshapy_engine.execute(statement)
+            # result = gsshapy_engine.execute(statement)
+            result = gi_lib.timeout(gsshapy_engine.execute, args=(statement,), kwargs={}, timeout=10, result_can_be_pickled=False, default=None)
         # Process if two maps are selected
         else:
             # Get the ids for the two index maps to be combined
@@ -98,7 +99,8 @@ def combine_index(request, job_id, index_name):
                               )
                             WHERE id = '''+ unicode(new_index.id) +''';
                         '''
-            result = gsshapy_engine.execute(statement)
+            # result = gsshapy_engine.execute(statement)
+            result = gi_lib.timeout(gsshapy_engine.execute, args=(statement,), kwargs={}, timeout=10, result_can_be_pickled=False, default=None)
 
         if result != "":
             # Get the values in the index map
@@ -115,6 +117,8 @@ def combine_index(request, job_id, index_name):
                                    filter(MTValue.mapTable == mapTables[0]).\
                                    order_by(MTIndex.index).\
                                    all()
+
+            print "Indices: ", indices
 
             # Go through the map tables that use the index map
             map_table_count = 0

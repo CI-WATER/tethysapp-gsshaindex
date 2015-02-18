@@ -7,6 +7,7 @@ tethysapp/gsshaindex/model.py
 tethysapp/gsshaindex/utilities.py
 tethysapp/gsshaindex/controllers/__init__.py
 tethysapp/gsshaindex/controllers/ajax.py
+tethysapp/gsshaindex/controllers/combine_index.py
 tethysapp/gsshaindex/controllers/draw_index.py
 tethysapp/gsshaindex/controllers/index_desc_and_val.py
 tethysapp/gsshaindex/controllers/main.py

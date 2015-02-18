@@ -1,0 +1,147 @@
+{% extends "gsshaindex/base.html" %}
+
+{% load tethys_gizmos %}
+
+{% block app_navigation_items %}
+  <li class="title">App Navigation</li>
+  <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
+  <!--<li><a href="">Load New Models</a></li>-->
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:in_progress'%}">Models in Progress</a></li>
+  <li class="separator"></li>
+  <li><a href="{% url 'gsshaindex:status'%}">Completed Models</a></li>
+{% endblock %}
+
+{% block modal_block %}
+  <form action="{% url 'gsshaindex:shapefile_upload' job_id=job_id index_name=index_name shapefile_id=shapefile_id %}" method="post" enctype="multipart/form-data">
+      {% csrf_token %}
+        <div id="select_files" class="modal fade" tabindex="-1" role="dialog" >
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Select Shapefile Files</h3>
+                  </div>
+                  <div class="modal-body">
+                    <p>Please select the shapefile's files, there are three types of file extensions required for a shapefile: .shp, .shx, and .dbf. If a .prj file is included, you won't have to specify the projection.</p>
+                    <input id="selected_files" type="file" name="shapefile_files" multiple>
+	  		        <p id="error_message" style="display:none; color:red; font-weight:bold">A shapefile must have files with the extensions of: .shp, .shx, and .dbf</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                    <button class="btn btn-primary" type="submit" name="select_shapefile_files" href="javascript:void(0);" onclick="submit_files()">Upload Files</button>
+                  </div>
+              </div>
+          </div>
+        </div>
+
+      <div id="select_projection" class="modal fade" tabindex="-1" role="dialog" >
+          <div class="modal-dialog">
+              <div class="modal-content">
+                  <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Select Shapefile Projection</h3>
+                  </div>
+                  <div class="modal-body">
+                    <select id="projections" style="width:500px">
+                        {% for projection in projection_list %}
+                            <option value="{{projection.srid}}">{{projection.short_desc}}</option>
+                        {% endfor %}
+                    </select>
+                    <p id="error_projection" style="display:none; color:red; font-weight:bold">You must select a projection</p>
+                  </div>
+                  <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
+                    <button class="btn btn-primary" type="submit" name="select_shapefile_projection" href="javascript:void(0);" onclick="submit_projection()">Upload Files</button>
+                  </div>
+              </div>
+          </div>
+      </div>
+
+      <div id="name_shapefile" class="modal hide fade">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                <h3>Provide Shapefile Name and Description</h3>
+            </div>
+            <div class="modal-body">
+                <input type="text" id="projection-text" style="display:none">
+                <input type="text" id="projection-number" name="projection-number" style="display:none">
+
+                <p>Please supply the shapefile name</p>
+                <input id="shp-name" type="text" name="shapefile_name"style="width:500px">
+                <p>Please give a shapefile description</p>
+                <textarea id="shp-desc" rows="4" name="shapefile_description" style="width:500px"></textarea>
+                <p id="error_name" style="display:none; color:red; font-weight:bold">The shapefile requires a name</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                <button class="btn btn-primary" name="submit_shapefile_files" type="submit">Submit</button>
+            </div>
+      </div>
+  </form>
+{% endblock %}
+
+{% block primary_content %}
+      <h1 class="heading_title">Shapefile: {{file_name}}</h1>
+      <h4>Shapefile Description</h4>
+	  <p id="description">{{file_description}}</p>
+      {% gizmo editable_google_map google_map %}
+{% endblock %}
+
+{% block secondary_content %}
+    <h2 class="module-heading">
+      Select a Shapefile
+    </h2>
+    <div class="module-content">
+        <div id="shapefiles-div" style="height:400px;overflow-y:auto">
+			<ul class="nav nav-pills nav-stacked">
+				{% for shapefile in shapefile_list %}
+				<li {% ifequal shapefile_id shapefile.id %} class="shapefile active"{% else %} class="shapefile" {% endifequal %}><a href="javascript:void(0);" id="{{shapefile.id}}" onclick="changeShapefile(this, '{{shapefile.id}}', '{{shapefile.description}}', '{{shapefile.name}}', '{{shapefile.url}}', '{{job_id}}', '{{index_name}}');">{{shapefile.name}}</a></li>
+                {% endfor %}
+			</ul>
+    	</div>
+    	<div style="padding:15px" align="center">
+	    	<a href="#select_files" class="btn btn-primary" data-toggle="modal">Upload Shapefile</a>
+	    </div>
+    	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id shapefile_id=shapefile_id%}" method="post">
+            {% csrf_token %}
+		    <div style="padding:15px" align="center">
+		    	<input type="text" id="file_id" name="file_id" value= "{{file_id}}" >
+		    	<input type="text" id="file_name" name="file_name" value="{{file_name}}" >
+		    	<input type="text" id="file_url" name="file_url" value="{{file_url}}" style="display:none">
+		    </div>
+	    </form>
+    </div>
+{% endblock %}
+
+{% block app_actions %}
+  <input type="submit" form="select_shapefile" class="btn btn-default" value="Next"/>
+{% endblock %}
+
+{% block scripts %}
+    {{ block.super }}
+	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+	<script>
+        function changeShapefile(element, shapefile_id, shapefile_description, shapefile_name, shapefile_url, job_id, index_name) {
+			var url = '/apps/gsshaindex/'+job_id+'/show-overlay/'+index_name+'/'+shapefile_id;
+			console.log(url);
+
+			$('.shapefile').each(function(shapefile_id){
+				$(this).removeClass('active');
+			});
+			$('#file_id').val(shapefile_id);
+			$('#file_name').val(shapefile_name);
+			$('#file_url').val(shapefile_url);
+			$('.shapefile').each(function(){
+				if ($(this).children('a').get(0).id == shapefile_id){
+					$(this).addClass('active');
+					$('#description').text(shapefile_description);
+					$('h1').text("Shapefile: "+$(element).text());
+				};
+			});
+
+			TETHYS_EDIT_MAP.swapKmlService(url);
+
+		};
+	</script>
+{% endblock %}

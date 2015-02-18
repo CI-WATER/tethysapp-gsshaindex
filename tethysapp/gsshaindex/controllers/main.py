@@ -301,8 +301,6 @@ def select_index(request, job_id):
         shapefile_id = shapefile_list[0]['id']
     print shapefile_id
 
-    print "REQUESTS: ", request.POST
-
     # Give options for editing the index map
     if ('select_index' in request.POST):
         params = request.POST
@@ -312,8 +310,8 @@ def select_index(request, job_id):
         if (params['method'] == "Create polygons"):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
         elif (params['method'] == "Download shapefile"):
-            messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
-            # return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'map_name':map_name,'shapefile_id':shapefile_id}))
+            # messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
+            return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id': shapefile_id}))
         elif (params['method'] == "Merge index maps"):
             # messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'index_name':index_name}))
