@@ -2,6 +2,8 @@
 
 {% load tethys_gizmos %}
 
+{% load tethys_gizmos staticfiles %}
+
 {% block app_navigation_items %}
   <li class="title">App Navigation</li>
   <li><a href="{% url 'gsshaindex:home'%}">Home</a></li>
@@ -29,7 +31,7 @@
                   </div>
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-                    <button class="btn btn-primary" type="submit" name="select_shapefile_files" href="javascript:void(0);" onclick="submit_files()">Upload Files</button>
+                    <a class="btn btn-primary" name="select_shapefile_files" href="javascript:void(0);" onclick="submit_files()">Upload Files</a>
                   </div>
               </div>
           </div>
@@ -43,22 +45,18 @@
                     <h3>Select Shapefile Projection</h3>
                   </div>
                   <div class="modal-body">
-                    <select id="projections" style="width:500px">
-                        {% for projection in projection_list %}
-                            <option value="{{projection.srid}}">{{projection.short_desc}}</option>
-                        {% endfor %}
-                    </select>
+                    {% gizmo select_input select_input2 %}
                     <p id="error_projection" style="display:none; color:red; font-weight:bold">You must select a projection</p>
                   </div>
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-                    <button class="btn btn-primary" type="submit" name="select_shapefile_projection" href="javascript:void(0);" onclick="submit_projection()">Upload Files</button>
+                    <a class="btn btn-primary" name="select_shapefile_projection" href="javascript:void(0);" onclick="submit_projection()">Upload Files</a>
                   </div>
               </div>
           </div>
       </div>
 
-      <div id="name_shapefile" class="modal hide fade">
+      <div id="name_shapefile" class="modal hide fade" tabindex="-1" role="dialog">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
                 <h3>Provide Shapefile Name and Description</h3>
@@ -85,7 +83,7 @@
       <h1 class="heading_title">Shapefile: {{file_name}}</h1>
       <h4>Shapefile Description</h4>
 	  <p id="description">{{file_description}}</p>
-      {% gizmo editable_google_map google_map %}
+      {% gizmo google_map_view google_map %}
 {% endblock %}
 
 {% block secondary_content %}
@@ -121,6 +119,7 @@
 {% block scripts %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script src="{% static 'gsshaindex/js/upload_shapefile.js' %}" type="text/javascript"></script>
 	<script>
         function changeShapefile(element, shapefile_id, shapefile_description, shapefile_name, shapefile_url, job_id, index_name) {
 			var url = '/apps/gsshaindex/'+job_id+'/show-overlay/'+index_name+'/'+shapefile_id;

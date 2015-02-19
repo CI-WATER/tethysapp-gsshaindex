@@ -4,6 +4,7 @@ from sqlalchemy import distinct
 from django.shortcuts import render, redirect
 from django.contrib import messages
 from django.core.urlresolvers import reverse
+from django.http import JsonResponse
 import operator, random, pickle, pprint, zipfile, time, ConfigParser, os, json
 from gsshapy.orm import *
 from gsshapy.lib import db_tools as dbt
@@ -14,6 +15,7 @@ import tethysapp.gsshaindex.lib as gi_lib
 from ..lib import raster2pgsql_path, maps_api_key
 from datetime import datetime, date
 from mapkit.ColorRampGenerator import ColorRampEnum
+import requests
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
 
@@ -146,7 +148,12 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     for row in result_prj_query:
         srid = row['srid']
         short_desc = row['srtext'].split('"')[1]
-        projection_list.append({"srid":srid, "short_desc":short_desc})
+        projection_list.append((short_desc, srid))
+
+    select_input2 = {'display_text': 'Select2',
+                'name': 'Select Projection',
+                'multiple': False,
+                'options': projection_list}
 
     context['job_id'] = job_id
     context['index_name'] = index_name
@@ -158,22 +165,23 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     context['file_url'] = file_url
     context['shapefile_id'] = shapefile_id
     context['projection_list'] = projection_list
+    context['select_input2'] = select_input2
 
 
     return render(request, 'gsshaindex/select_shapefile.html', context)
 
 
-def get_srid_from_wkt(request, url):
-    url = url
+def get_srid_from_wkt(request):
+    url = request.GET['url']
     url = "http://prj2epsg.org/search.json?mode=wkt&terms=" + url
-    r= request.get(url)
+    r= requests.get(url)
     status = r.status_code
     if status == 200:
         result =  r.json()
         prj_code =  str(result['codes'][0]['code'])
-        return (prj_code)
+        return JsonResponse({'prj_code':prj_code})
     else:
-        return ('error')
+        return JsonResponse({'prj_code':'error'})
 
 def shapefile_upload(request, job_id, index_name, shapefile_id):
     """
@@ -191,11 +199,75 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     # Clear the workspace
     gi_lib.clear_folder(userDir)
 
+    # Get the params
     params = request.POST
-
     print "PARAMS: ", params
+    files = request.FILES
 
+    input_files = []
+    for file in files.getlist('shapefile_files'):
+        print file
+        input_files.append(file)
 
+    name = params['shapefile_name']
+    description = params['shapefile_description']
+    srid = params['projection-number']
+    # Reformat the name by removing bad characters
+    bad_char = "',.<>()[]{}=+-/\"|:;\\^?!~`@#$%&* "
+    for char in bad_char:
+        new_name = name.replace(char,"_")
+    zip_name = new_name + ".zip"
+    zip_path = os.path.join(userDir, zip_name)
+
+    shp_list = []
+
+    for file in input_files:
+        print file.name
+        if file.name.endswith('.shp'):
+            shp_list.append({file.name: file.file})
+            new_name = file[:-4]
+        elif file.name.endswith('.shx'):
+            shp_list.append({file.name: file.file})
+        elif file.name.endswith('.dbf'):
+            shp_list.append({file.name: file.file})
+        elif file.name.endswith('.prj'):
+            shp_list.append({file.name: file.file})
+        elif file.name.endswith('.sbx'):
+            shp_list.append({file.name: file.file})
+        elif file.name.endswith('.sbn'):
+            shp_list.append({file.name: file.file})
+        elif file.name.endswith('.xml'):
+            shp_list.append({file.name: file.file})
+
+    print new_name
+    print shp_list
+
+    temp_dir = os.path.join(userDir, new_name)
+    os.mkdir(temp_dir)
+
+    for thing in shp_list:
+        file_path = os.path.join(temp_dir, thing.keys()[0])
+
+        with open(file_path, 'w') as f:
+            f.write(thing.values()[0].read())
+
+    # Get list of files to be zipped
+    writeFile_list = os.listdir(temp_dir)
+
+    # Add files to the zip folder
+    with zipfile.ZipFile(zip_path, "w") as shp_zip:
+        for item in writeFile_list:
+            abs_path = os.path.join(temp_dir, item)
+            archive_path = os.path.join(new_name, item)
+            shp_zip.write(abs_path, archive_path)
+
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
+
+    result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description)
+    print zip_path
+    print name
+    print description
 
     return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shapefile_id}))
 

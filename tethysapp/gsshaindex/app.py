@@ -22,9 +22,6 @@ class GSSHAIndex(TethysAppBase):
         controllers = (AppController(name='home',
                                      url='gsshaindex',
                                      controller='gsshaindex.controllers.main.home'
-                       # ),AppController(name='secondpg',
-                       #               url='gsshaindex/{name}',
-                       #               controller='gsshaindex.controllers.main.secondpg'
                        ),AppController(name='info_by_id',
                                      url='gsshaindex/info-by-id/{file_id}',
                                      controller='gsshaindex.controllers.ajax.info_by_id'
@@ -50,7 +47,7 @@ class GSSHAIndex(TethysAppBase):
                                      url='gsshaindex/{job_id}/shapefile-upload/{index_name}/{shapefile_id}',
                                      controller='gsshaindex.controllers.select_shapefile.shapefile_upload'
                        ),AppController(name='get_srid_from_wkt',
-                                     url='gsshaindex/get-srid-from-wkt/{url}',
+                                     url='gsshaindex/get-srid-from-wkt',
                                      controller='gsshaindex.controllers.select_shapefile.get_srid_from_wkt'
                        ),AppController(name='show_overlay',
                                      url='gsshaindex/{job_id}/show-overlay/{index_name}/{shapefile_id}',

@@ -270,6 +270,17 @@ def add_depth_map_CKAN(dataset, CKAN_engine, depth_file, depth_name):
 
     return result['result'], result['success']
 
+def append_shapefile_CKAN(dataset, CKAN_engine, zip_file_path, name, description):
+    '''
+    This function adds a kml file to CKAN
+    kml_file = where the kml is located
+    kml_name = the name of the kml file
+    '''
+
+    result = CKAN_engine.create_resource(dataset['result']['results'][0]['id'], name=name, file=zip_file_path, format="zip", description=description)
+
+    return result['result'], result['success']
+
 def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
 
     # Clear the results folder
