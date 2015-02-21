@@ -150,8 +150,8 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
         short_desc = row['srtext'].split('"')[1]
         projection_list.append((short_desc, srid))
 
-    select_input2 = {'display_text': 'Select2',
-                'name': 'Select Projection',
+    select_input2 = {'display_text': 'Select Projection',
+                'name': 'select_projection',
                 'multiple': False,
                 'options': projection_list}
 
@@ -211,7 +211,7 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
 
     name = params['shapefile_name']
     description = params['shapefile_description']
-    srid = params['projection-number']
+    srid = params['select_projection']
     # Reformat the name by removing bad characters
     bad_char = "',.<>()[]{}=+-/\"|:;\\^?!~`@#$%&* "
     for char in bad_char:
@@ -225,7 +225,7 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
         print file.name
         if file.name.endswith('.shp'):
             shp_list.append({file.name: file.file})
-            new_name = file[:-4]
+            new_name = file.name[:-4]
         elif file.name.endswith('.shx'):
             shp_list.append({file.name: file.file})
         elif file.name.endswith('.dbf'):
@@ -264,7 +264,7 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
     shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
 
-    result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description)
+    result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description, srid)
     print zip_path
     print name
     print description

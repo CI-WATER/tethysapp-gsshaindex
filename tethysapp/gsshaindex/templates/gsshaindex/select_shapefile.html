@@ -56,25 +56,29 @@
           </div>
       </div>
 
-      <div id="name_shapefile" class="modal hide fade" tabindex="-1" role="dialog">
-            <div class="modal-header">
-                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-                <h3>Provide Shapefile Name and Description</h3>
-            </div>
-            <div class="modal-body">
-                <input type="text" id="projection-text" style="display:none">
-                <input type="text" id="projection-number" name="projection-number" style="display:none">
+      <div id="name_shapefile" class="modal fade" tabindex="-1" role="dialog">
+          <div class="modal-dialog">
+              <div class="modal-content">
+                <div class="modal-header">
+                    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                    <h3>Provide Shapefile Name and Description</h3>
+                </div>
+                <div class="modal-body">
+                    <input type="text" id="projection-text" style="display:none">
+                    <input type="text" id="projection-number" name="projection-number" style="display:none">
 
-                <p>Please supply the shapefile name</p>
-                <input id="shp-name" type="text" name="shapefile_name"style="width:500px">
-                <p>Please give a shapefile description</p>
-                <textarea id="shp-desc" rows="4" name="shapefile_description" style="width:500px"></textarea>
-                <p id="error_name" style="display:none; color:red; font-weight:bold">The shapefile requires a name</p>
-            </div>
-            <div class="modal-footer">
-                <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
-                <button class="btn btn-primary" name="submit_shapefile_files" type="submit">Submit</button>
-            </div>
+                    <p>Please supply the shapefile name</p>
+                    <input id="shp-name" type="text" name="shapefile_name"style="width:500px">
+                    <p>Please give a shapefile description</p>
+                    <textarea id="shp-desc" rows="4" name="shapefile_description" style="width:500px"></textarea>
+                    <p id="error_name" style="display:none; color:red; font-weight:bold">The shapefile requires a name</p>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn" data-dismiss="modal" aria-hidden="true">Close</button>
+                    <button class="btn btn-primary" name="submit_shapefile_files" type="submit">Submit</button>
+                </div>
+              </div>
+          </div>
       </div>
   </form>
 {% endblock %}
