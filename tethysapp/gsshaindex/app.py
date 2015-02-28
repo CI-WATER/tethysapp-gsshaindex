@@ -1,4 +1,4 @@
-from tethys_apps.base import TethysAppBase, PersistentStore, app_controller_maker, DatasetService
+from tethys_apps.base import TethysAppBase, PersistentStore, app_controller_maker, DatasetService, SpatialDatasetService
 
 
 class GSSHAIndex(TethysAppBase):
@@ -129,3 +129,18 @@ class GSSHAIndex(TethysAppBase):
         )
 
         return dataset_services
+
+
+    def spatial_dataset_services(self):
+        """
+        Add one or more dataset services
+        """
+        spatial_dataset_services = (SpatialDatasetService(name='gsshaindex_geoserver',
+                                           type='geoserver',
+                                           endpoint='http://192.168.59.103:8181/geoserver/rest',
+                                           username='admin',
+                                           password='geoserver'
+                                           ),
+        )
+
+        return spatial_dataset_services

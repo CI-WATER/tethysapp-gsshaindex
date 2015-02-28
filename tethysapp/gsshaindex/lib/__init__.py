@@ -12,6 +12,7 @@ from gsshapy.orm import ProjectFile
 from datetime import datetime
 from os import path
 from multiprocessing import Process, Queue
+from tethys_apps.sdk import get_spatial_dataset_engine
 
 # Get app.ini
 gsshaindex_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -526,3 +527,16 @@ def draw_update_index(statement):
         result2 = gsshapy_engine.execute(second_different_statement)
         result = True
     return result
+
+def check_workspace(dataset_engine):
+
+    workspace = dataset_engine.get_workspace('gsshaindex')
+
+    if workspace['success'] == False:
+        workspace = dataset_engine.create_workspace('gsshaindex','http://host/apps/gsshaindex')
+        print "Workspace created"
+    else:
+        pass
+        print "Workspace already exists"
+
+    return workspace

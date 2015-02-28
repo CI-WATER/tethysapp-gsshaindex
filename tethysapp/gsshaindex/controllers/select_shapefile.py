@@ -16,8 +16,17 @@ from ..lib import raster2pgsql_path, maps_api_key
 from datetime import datetime, date
 from mapkit.ColorRampGenerator import ColorRampEnum
 import requests
+import subprocess
+from tethys_apps.sdk import get_spatial_dataset_engine
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
+
+# Get app.ini
+controller_dir = os.path.abspath(os.path.dirname(__file__))
+config_path = os.path.join(os.path.abspath(os.path.dirname(controller_dir)), 'app.ini')
+app_config = ConfigParser.RawConfigParser()
+app_config.read(config_path)
+shp2pgsql = app_config.get('postgis', 'shp2pgsql_path')
 
 def shapefile_index(request, job_id, index_name, shapefile_id):
     """
@@ -133,10 +142,16 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     job_session.commit()
     job_session.close()
 
+    sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
+    result = sde.get_layer(layer_id='gsshaindex:jocelynn', debug=True)
+
+
     editable_map = {'height': '600px',
                         'width': '100%',
                         'maps_api_key':maps_api_key,
-                        'output_format': 'WKT'}
+                        'output_format': 'WKT',
+                        'reference_kml_action':'/apps/gsshaindex/'+ job_id + '//'  + index_name}
+
 
     # Create an array of the projections for the selet_projection modal
     projection_query = '''SELECT srid, srtext FROM spatial_ref_sys'''
@@ -198,6 +213,9 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
 
     # Clear the workspace
     gi_lib.clear_folder(userDir)
+
+    # Create a session
+    gsshapy_session = gsshapy_sessionmaker()
 
     # Get the params
     params = request.POST
@@ -261,13 +279,63 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
             archive_path = os.path.join(new_name, item)
             shp_zip.write(abs_path, archive_path)
 
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
-    shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
+    # Add shapefile to database
+    # Clear the workspace
 
-    result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description, srid)
-    print zip_path
-    print name
-    print description
+    wkt_json = {'type': 'WKTGeometryCollection',
+                            'geometries': ''}
+
+    kml = ""
+
+
+    ### Need to figure out what to do with this code
+    for root, dirs, files in os.walk(temp_dir):
+        for file in files:
+            if "." in file:
+                new_name = str(user)+file[-4:]
+                os.rename(os.path.join(root,file), os.path.join(root,new_name))
+                if file.endswith(".dbf"):
+                    dbf_path = os.path.join(root,new_name)
+
+    #Try deleting that table name
+    delete_statement = '''DROP TABLE '''+ user +''';'''
+    try:
+        gsshapy_engine.execute(delete_statement)
+    except:
+        pass
+
+    # Write statement that will create table for shapefile in the database
+    shapefile2pgsql = subprocess.Popen([shp2pgsql,
+                                        '-s',
+                                        srid,
+                                        str(dbf_path)],
+                                       stdout=subprocess.PIPE)
+
+    print srid
+
+    # Check to see if there are errors or if it worked
+    sql, error = shapefile2pgsql.communicate()
+    print "ERROR:", error
+
+    if error == None:
+        result = gsshapy_engine.execute(sql)
+
+
+        # Start Spatial Dataset Engine
+        dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
+
+        # Check to see if Spatial Dataset Engine Exists
+        workspace = gi_lib.check_workspace(dataset_engine)
+
+        feature_resource = dataset_engine.create_postgis_feature_resource(store_id = 'gsshaindex:shapefiles', table=user, host='172.17.42.1', port='5435', database='gsshaindex_gsshapy_db',user='tethys_db_manager',password='(|w@ter', debug=True)
+
+
+
+
+    # Add the files to CKAN
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
+    # result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description, srid)
 
     return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shapefile_id}))
 
