@@ -142,15 +142,12 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     job_session.commit()
     job_session.close()
 
-    sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
-    result = sde.get_layer(layer_id='gsshaindex:jocelynn', debug=True)
-
 
     editable_map = {'height': '600px',
                         'width': '100%',
                         'maps_api_key':maps_api_key,
                         'output_format': 'WKT',
-                        'reference_kml_action':'/apps/gsshaindex/'+ job_id + '//'  + index_name}
+                        'reference_kml_action':'/apps/gsshaindex/'+ job_id + '/show-overlay/' + index_name}
 
 
     # Create an array of the projections for the selet_projection modal
@@ -186,6 +183,27 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     return render(request, 'gsshaindex/select_shapefile.html', context)
 
 
+def show_overlay(request, job_id, index_name):
+    """
+    This action is used to pass the kml data to the google map.
+    It must return a JSON response with a Python dictionary that
+    has the key 'kml_links'.
+    """
+    kml_links = []
+
+    context = {}
+
+    sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
+    result = sde.get_layer(layer_id='gsshaindex:jocelynn')
+
+    if result['success'] == True:
+        url = result['result']['wms']['kml']
+        print url
+        kml_links.append(url)
+
+    return JsonResponse({'kml_links': kml_links})
+
+
 def get_srid_from_wkt(request):
     url = request.GET['url']
     url = "http://prj2epsg.org/search.json?mode=wkt&terms=" + url
@@ -197,6 +215,7 @@ def get_srid_from_wkt(request):
         return JsonResponse({'prj_code':prj_code})
     else:
         return JsonResponse({'prj_code':'error'})
+
 
 def shapefile_upload(request, job_id, index_name, shapefile_id):
     """
@@ -339,87 +358,3 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
 
     return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shapefile_id}))
 
-
-def show_overlay(request, job_id, index_name, shapefile_id):
-    """
-    This action is used to pass the kml data to the google map.
-    It must return a JSON response with a Python dictionary that
-    has the key 'kml_links'.
-    """
-    kml_links = []
-
-    context = {}
-    user = str(request.user)
-
-    # Get the job from the database
-    job_session = jobs_sessionmaker()
-    job, success = gi_lib.get_pending_job(job_id, user, job_session)
-
-    # print job.kml_url
-    #
-    # if job.kml_url != None:
-    #     print "A MASK MAP EXISTS"
-    #     kml_links.append(job.kml_url)
-    #     return JsonResponse({'kml_links': kml_links})
-    # else:
-    #     # Check that there's a package to store kmls
-    #     CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
-    #     present = gi_lib.check_package('kmls', CKAN_engine)
-    #
-    #     # Specify the workspace
-    #     controllerDir = os.path.abspath(os.path.dirname(__file__))
-    #     gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
-    #     publicDir = os.path.join(gsshaindexDir,'public')
-    #     userDir = os.path.join(publicDir, str(user))
-    #
-    #     # Clear the workspace
-    #     gi_lib.clear_folder(userDir)
-    #
-    #     url = job.original_url
-    #     maskMapDir = os.path.join(userDir, 'mask_maps')
-    #     extractPath = os.path.join(maskMapDir, file_id)
-    #     mask_file = gi_lib.extract_mask(url, extractPath)
-    #     if mask_file == "blank":
-    #         print "Mask File Didn't Exist"
-    #         job.kml_url = ''
-    #         session.commit()
-    #         return JsonResponse({'kml_links': ''})
-    #     else:
-    #         projection_file = gi_lib.extract_projection(url,extractPath)
-    #
-    #         # Set up kml file name and save location
-    #         name = job.original_name
-    #         norm_name = name.replace(" ","")
-    #         current_time = time.strftime("%Y%m%dT%H%M%S")
-    #         kml_name = norm_name + "_" + user + "_" + current_time
-    #         kml_ext = kml_name + ".kml"
-    #         kml_file = os.path.join(extractPath, kml_ext)
-    #
-    #         colors = [(237,9,222),(92,245,61),(61,184,245),(171,61,245),(250,245,105),(245,151,44),(240,37,14),(88,5,232),(5,232,190),(11,26,227)]
-    #         color = [random.choice(colors)]
-    #
-    #         # Extract mask map and create kml
-    #         gsshapy_session = gsshapy_sessionmaker()
-    #         if projection_file != "blank":
-    #             srid = ProjectionFile.lookupSpatialReferenceID(extractPath, projection_file)
-    #         else:
-    #             print("There is no projection file, so default is being used")
-    #             srid = 4302
-    #         mask_map = RasterMapFile()
-    #         mask_map.read(directory=extractPath, filename=mask_file, session=gsshapy_session, spatial=True, spatialReferenceID=srid)
-    #         mask_map.getAsKmlClusters(session=gsshapy_session, path=kml_file, colorRamp={'colors':color, 'interpolatedPoints':1})
-    #
-    #         mask_map_dataset = gi_lib.check_dataset("mask-maps", CKAN_engine)
-    #
-    #         # mask_map_dataset = mask_map_dataset['result']['results'][0]['id']
-    #
-    #         # Add mask kml to CKAN for viewing
-    #         resource, success = gi_lib.add_kml_CKAN(mask_map_dataset, CKAN_engine, kml_file, kml_name)
-    #
-    #         # Check to ensure the resource was added and save it to database by adding "kml_url"
-    #         if success == True:
-    #             job.kml_url = resource['url']
-    #             session.commit()
-    #             kml_links.append(job.kml_url)
-    #             return JsonResponse({'kml_links': kml_links})
-    return JsonResponse({'kml_links': kml_links})

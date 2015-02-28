@@ -309,7 +309,7 @@ def select_index(request, job_id):
         print index_name
         if (params['method'] == "Create polygons"):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
-        elif (params['method'] == "Download shapefile"):
+        elif (params['method'] == "Upload shapefile"):
             # messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id': shapefile_id}))
         elif (params['method'] == "Merge index maps"):
@@ -374,6 +374,8 @@ def get_index_maps(request, job_id, index_name):
 
     # Get the kml url
     kml_links = resource_list[map_name]['url']
+
+    print kml_links
 
     return JsonResponse({'kml_links': [kml_links]})
 

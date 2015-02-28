@@ -27,7 +27,7 @@
                     <label>Editing method</label>
                     <select name="method">
                         <option id="option1">Create polygons</option>
-                        <option id="option2">Download shapefile</option>
+                        <option id="option2">Upload shapefile</option>
                         <option id="option3">Merge index maps</option>
                     </select>
                     <input type="text" id="index_name" name="index_name" value= {{map_name}} style="display:none">
@@ -125,7 +125,7 @@
 					$("#editing_description").text("Manually draw polygons to change the index maps.");
 				}
 				else if ($(this).get(0).find(":selected").id() == "option2"){
-					$("#editing_description").text("Select a shapefile to download which is then used to select what areas of the index map will be changed.");
+					$("#editing_description").text("Select a shapefile to upload and use for your new index map.");
 				}
 				else if ($(this).get(0).find(":selected").id() == "option3"){
 					$("#editing_description").text("Select two index maps to combine, or select one index map to replace this one.");
@@ -134,14 +134,15 @@
         });
 
 		$("select").change(function(){
+            var selected_id = $(this).children(":selected").attr("id");
 			$("select option").each(function(){
-				if ($(this).get(0).id == "option1"){
+				if (selected_id == "option1"){
 					$("#editing_description").text("Manually draw polygons to change the index maps.");
 				}
-				else if ($(this).get(0).id == "option2"){
-					$("#editing_description").text("Select a shapefile to download which is then used to select what areas of the index map will be changed.");
+				else if (selected_id == "option2"){
+					$("#editing_description").text("Select a shapefile to upload and use for your new index map.");
 				}
-				else if ($(this).get(0).id == "option3"){
+				else if (selected_id == "option3"){
 					$("#editing_description").text("Select two index maps to combine, or select one index map to replace this one.");
 				}
 			});

@@ -2,8 +2,10 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="2b69ca52-517a-4559-99fd-0d532ed431e5" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/lib/__init__.py" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/lib/__init__.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/app.py" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/app.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/select_shapefile.py" afterPath="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/select_shapefile.py" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
@@ -67,12 +69,12 @@
       <file leaf-file-name="select_shapefile.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/select_shapefile.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.3011583" vertical-offset="1893" max-vertical-offset="6450">
-              <caret line="147" column="0" selection-start-line="147" selection-start-column="0" selection-end-line="147" selection-end-column="0" />
+            <state vertical-scroll-proportion="0.7104247" vertical-offset="4454" max-vertical-offset="5490">
+              <caret line="346" column="58" selection-start-line="346" selection-start-column="58" selection-end-line="346" selection-end-column="58" />
               <folding>
                 <element signature="e#0#50#0" expanded="true" />
-                <marker date="1425083546000" expanded="true" signature="6044:6084" placeholder="SELECT srid,..spatial_ref_sys..." />
-                <marker date="1425083546000" expanded="true" signature="10628:10639" placeholder="DROP TABLE m..." />
+                <marker date="1425158187000" expanded="true" signature="5895:5935" placeholder="SELECT srid,..spatial_ref_sys..." />
+                <marker date="1425158187000" expanded="true" signature="11067:11078" placeholder="DROP TABLE m..." />
               </folding>
             </state>
           </provider>
@@ -81,8 +83,8 @@
       <file leaf-file-name="select_shapefile.html" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-1.25" vertical-offset="225" max-vertical-offset="2325">
-              <caret line="17" column="142" selection-start-line="17" selection-start-column="142" selection-end-line="17" selection-end-column="161" />
+            <state vertical-scroll-proportion="-22.5" vertical-offset="915" max-vertical-offset="2325">
+              <caret line="97" column="8" selection-start-line="97" selection-start-column="8" selection-end-line="103" selection-end-column="14" />
               <folding>
                 <element signature="n#style#0;n#p#1;n#div#1;n#div#0;n#div#0;n#div#0;n#form#0;n#!!top" expanded="true" />
                 <element signature="n#style#0;n#p#0;n#div#1;n#div#0;n#div#0;n#div#1;n#form#0;n#!!top" expanded="true" />
@@ -113,8 +115,8 @@
       <file leaf-file-name="app.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/app.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="1231" max-vertical-offset="2280">
-              <caret line="139" column="53" selection-start-line="139" selection-start-column="53" selection-end-line="139" selection-end-column="90" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="496" max-vertical-offset="2280">
+              <caret line="52" column="87" selection-start-line="52" selection-start-column="87" selection-end-line="52" selection-end-column="87" />
               <folding />
             </state>
           </provider>
@@ -123,8 +125,8 @@
       <file leaf-file-name="main.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.0" vertical-offset="2941" max-vertical-offset="12840">
-              <caret line="301" column="22" selection-start-line="301" selection-start-column="22" selection-end-line="301" selection-end-column="22" />
+            <state vertical-scroll-proportion="0.0" vertical-offset="5333" max-vertical-offset="12870">
+              <caret line="377" column="19" selection-start-line="377" selection-start-column="19" selection-end-line="377" selection-end-column="19" />
               <folding>
                 <element signature="e#0#45#0" expanded="true" />
               </folding>
@@ -172,9 +174,9 @@
   </component>
   <component name="HighlightingSettingsPerFile">
     <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/draw_index.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/index_desc_and_val.py" root0="SKIP_INSPECTION" />
-    <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/home.html" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/model.py" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/home.html" root0="SKIP_INSPECTION" />
+    <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/index_desc_and_val.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/app.py" root0="SKIP_INSPECTION" />
     <setting file="file://$PROJECT_DIR$/tethysapp/gsshaindex/init_stores.py" root0="SKIP_INSPECTION" />
@@ -193,19 +195,19 @@
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/edit_index.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/review_mapping_table.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/uncompleted_jobs.html" />
-        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/mapping_table.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/combine_index.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/jobs.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/index_desc_and_val.py" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/draw_index.py" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/combine_index.py" />
-        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/public/js/upload_shapefile.js" />
-        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/lib/__init__.py" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/app.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html" />
+        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py" />
         <option value="$PROJECT_DIR$/tethysapp/gsshaindex/controllers/select_shapefile.py" />
+        <option value="$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html" />
       </list>
     </option>
   </component>
@@ -587,6 +589,9 @@
       <option name="SHOW_COMMAND_LINE" value="false" />
       <method />
     </configuration>
+    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
+      <method />
+    </configuration>
     <configuration default="true" type="tests" factoryName="Unittests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -608,9 +613,6 @@
       <option name="PUREUNITTEST" value="true" />
       <option name="PARAMS" value="" />
       <option name="USE_PARAM" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="JavascriptDebugType" factoryName="JavaScript Debug">
       <method />
     </configuration>
     <configuration default="true" type="PyBehaveRunConfigurationType" factoryName="Behave">
@@ -656,6 +658,20 @@
       <envs />
       <method />
     </configuration>
+    <configuration default="true" type="PyLettuceRunConfigurationType" factoryName="Lettuce">
+      <option name="INTERPRETER_OPTIONS" value="" />
+      <option name="PARENT_ENVS" value="true" />
+      <envs />
+      <option name="SDK_HOME" value="" />
+      <option name="WORKING_DIRECTORY" value="" />
+      <option name="IS_MODULE_SDK" value="false" />
+      <option name="ADD_CONTENT_ROOTS" value="true" />
+      <option name="ADD_SOURCE_ROOTS" value="true" />
+      <module name="tethysapp-gsshaindex" />
+      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
+      <option name="ADDITIONAL_ARGS" value="" />
+      <method />
+    </configuration>
     <configuration default="true" type="tests" factoryName="Attests">
       <option name="INTERPRETER_OPTIONS" value="" />
       <option name="PARENT_ENVS" value="true" />
@@ -674,20 +690,6 @@
       <option name="TEST_TYPE" value="TEST_SCRIPT" />
       <option name="PATTERN" value="" />
       <option name="USE_PATTERN" value="false" />
-      <method />
-    </configuration>
-    <configuration default="true" type="PyLettuceRunConfigurationType" factoryName="Lettuce">
-      <option name="INTERPRETER_OPTIONS" value="" />
-      <option name="PARENT_ENVS" value="true" />
-      <envs />
-      <option name="SDK_HOME" value="" />
-      <option name="WORKING_DIRECTORY" value="" />
-      <option name="IS_MODULE_SDK" value="false" />
-      <option name="ADD_CONTENT_ROOTS" value="true" />
-      <option name="ADD_SOURCE_ROOTS" value="true" />
-      <module name="tethysapp-gsshaindex" />
-      <EXTENSION ID="PythonCoverageRunConfigurationExtension" enabled="false" sample_coverage="true" runner="coverage.py" />
-      <option name="ADDITIONAL_ARGS" value="" />
       <method />
     </configuration>
     <list size="0" />
@@ -829,7 +831,13 @@
       <option name="project" value="LOCAL" />
       <updated>1424477005805</updated>
     </task>
-    <option name="localTasksCounter" value="22" />
+    <task id="LOCAL-00022" summary="Shapefile uploader sends files to geoServer">
+      <created>1425083558659</created>
+      <option name="number" value="00022" />
+      <option name="project" value="LOCAL" />
+      <updated>1425083558659</updated>
+    </task>
+    <option name="localTasksCounter" value="23" />
     <servers />
   </component>
   <component name="TodoView" selected-index="0">
@@ -869,14 +877,14 @@
       <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32971016" sideWeight="0.5" order="9" side_tool="false" content_ui="tabs" />
       <window_info id="Cvs" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Message" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.325" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Ant Build" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Find" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.325" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="10" side_tool="false" content_ui="tabs" />
       <window_info id="Commander" active="false" anchor="right" auto_hide="false" internal_type="SLIDING" type="SLIDING" visible="false" weight="0.4" sideWeight="0.5" order="0" side_tool="false" content_ui="tabs" />
-      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
-      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
       <window_info id="Hierarchy" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="2" side_tool="false" content_ui="combo" />
+      <window_info id="Inspection" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.4" sideWeight="0.5" order="5" side_tool="false" content_ui="tabs" />
+      <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="2" side_tool="false" content_ui="tabs" />
     </layout>
   </component>
   <component name="Vcs.Log.UiProperties">
@@ -915,7 +923,8 @@
     <MESSAGE value="Shapefile uploader framework and page" />
     <MESSAGE value="Shapefile uploader workingish" />
     <MESSAGE value="Shapefile uploader sends files to CKAN" />
-    <option name="LAST_COMMIT_MESSAGE" value="Shapefile uploader sends files to CKAN" />
+    <MESSAGE value="Shapefile uploader sends files to geoServer" />
+    <option name="LAST_COMMIT_MESSAGE" value="Shapefile uploader sends files to geoServer" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
@@ -1206,13 +1215,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.16304348" vertical-offset="0" max-vertical-offset="2325">
-          <caret line="11" column="70" selection-start-line="11" selection-start-column="70" selection-end-line="11" selection-end-column="70" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/combine_index.html">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="-24.416666" vertical-offset="14" max-vertical-offset="1050">
@@ -1260,41 +1262,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-1.25" vertical-offset="225" max-vertical-offset="2325">
-          <caret line="17" column="142" selection-start-line="17" selection-start-column="142" selection-end-line="17" selection-end-column="161" />
-          <folding>
-            <element signature="n#style#0;n#p#1;n#div#1;n#div#0;n#div#0;n#div#0;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#p#0;n#div#1;n#div#0;n#div#0;n#div#1;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#input#0;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#input#1;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#input#2;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#textarea#0;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#p#2;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#1;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#div#0;n#form#0;n#div#0;n#!!top" expanded="true" />
-            <element signature="n#style#0;n#input#2;n#div#0;n#form#0;n#div#0;n#!!top" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/app.ini">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.042898" vertical-offset="0" max-vertical-offset="1049">
           <caret line="3" column="32" selection-start-line="3" selection-start-column="32" selection-end-line="3" selection-end-column="32" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="4291" max-vertical-offset="12840">
-          <caret line="301" column="22" selection-start-line="301" selection-start-column="22" selection-end-line="301" selection-end-column="22" />
-          <folding>
-            <element signature="e#0#45#0" expanded="true" />
-          </folding>
         </state>
       </provider>
     </entry>
@@ -1306,14 +1277,6 @@
             <element signature="e#0#59#0" expanded="true" />
             <marker date="1425079335000" expanded="true" signature="17892:17932" placeholder="UPDATE idx_i..." />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/app.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0" vertical-offset="1231" max-vertical-offset="2280">
-          <caret line="139" column="53" selection-start-line="139" selection-start-column="53" selection-end-line="139" selection-end-column="90" />
-          <folding />
         </state>
       </provider>
     </entry>
@@ -1330,14 +1293,60 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_index.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.8596838" vertical-offset="780" max-vertical-offset="2340">
+          <caret line="110" column="15" selection-start-line="110" selection-start-column="15" selection-end-line="110" selection-end-column="15" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/main.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="5333" max-vertical-offset="12870">
+          <caret line="377" column="19" selection-start-line="377" selection-start-column="19" selection-end-line="377" selection-end-column="19" />
+          <folding>
+            <element signature="e#0#45#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/templates/gsshaindex/select_shapefile.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="-22.5" vertical-offset="915" max-vertical-offset="2325">
+          <caret line="97" column="8" selection-start-line="97" selection-start-column="8" selection-end-line="103" selection-end-column="14" />
+          <folding>
+            <element signature="n#style#0;n#p#1;n#div#1;n#div#0;n#div#0;n#div#0;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#p#0;n#div#1;n#div#0;n#div#0;n#div#1;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#input#0;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#input#1;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#input#2;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#textarea#0;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#p#2;n#div#1;n#div#0;n#div#0;n#div#2;n#form#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#div#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#1;n#div#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#div#0;n#form#0;n#div#0;n#!!top" expanded="true" />
+            <element signature="n#style#0;n#input#2;n#div#0;n#form#0;n#div#0;n#!!top" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/app.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0" vertical-offset="496" max-vertical-offset="2280">
+          <caret line="52" column="87" selection-start-line="52" selection-start-column="87" selection-end-line="52" selection-end-column="87" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/tethysapp/gsshaindex/controllers/select_shapefile.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.3011583" vertical-offset="1893" max-vertical-offset="6450">
-          <caret line="147" column="0" selection-start-line="147" selection-start-column="0" selection-end-line="147" selection-end-column="0" />
+        <state vertical-scroll-proportion="0.7104247" vertical-offset="4454" max-vertical-offset="5490">
+          <caret line="346" column="58" selection-start-line="346" selection-start-column="58" selection-end-line="346" selection-end-column="58" />
           <folding>
             <element signature="e#0#50#0" expanded="true" />
-            <marker date="1425083546000" expanded="true" signature="6044:6084" placeholder="SELECT srid,..spatial_ref_sys..." />
-            <marker date="1425083546000" expanded="true" signature="10628:10639" placeholder="DROP TABLE m..." />
+            <marker date="1425158187000" expanded="true" signature="5895:5935" placeholder="SELECT srid,..spatial_ref_sys..." />
+            <marker date="1425158187000" expanded="true" signature="11067:11078" placeholder="DROP TABLE m..." />
           </folding>
         </state>
       </provider>
