@@ -95,23 +95,11 @@
       Upload a Shapefile
     </h2>
     <div class="module-content">
-        <div id="shapefiles-div" style="height:400px;overflow-y:auto">
-			<ul class="nav nav-pills nav-stacked">
-				{% for shapefile in shapefile_list %}
-				<li {% ifequal shapefile_id shapefile.id %} class="shapefile active"{% else %} class="shapefile" {% endifequal %}><a href="javascript:void(0);" id="{{shapefile.id}}" onclick="changeShapefile(this, '{{shapefile.id}}', '{{shapefile.description}}', '{{shapefile.name}}', '{{shapefile.url}}', '{{job_id}}', '{{index_name}}');">{{shapefile.name}}</a></li>
-                {% endfor %}
-			</ul>
-    	</div>
     	<div style="padding:15px" align="center">
 	    	<a href="#select_files" class="btn btn-primary" data-toggle="modal">Upload Shapefile</a>
 	    </div>
     	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id shapefile_id=shapefile_id%}" method="post">
             {% csrf_token %}
-		    <div style="padding:15px" align="center">
-		    	<input type="text" id="file_id" name="file_id" value= "{{file_id}}" >
-		    	<input type="text" id="file_name" name="file_name" value="{{file_name}}" >
-		    	<input type="text" id="file_url" name="file_url" value="{{file_url}}" style="display:none">
-		    </div>
 	    </form>
     </div>
 {% endblock %}
@@ -124,27 +112,4 @@
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="{% static 'gsshaindex/js/upload_shapefile.js' %}" type="text/javascript"></script>
-	<script>
-        function changeShapefile(element, shapefile_id, shapefile_description, shapefile_name, shapefile_url, job_id, index_name) {
-			var url = '/apps/gsshaindex/'+job_id+'/show-overlay/'+index_name+'/'+shapefile_id;
-			console.log(url);
-
-			$('.shapefile').each(function(shapefile_id){
-				$(this).removeClass('active');
-			});
-			$('#file_id').val(shapefile_id);
-			$('#file_name').val(shapefile_name);
-			$('#file_url').val(shapefile_url);
-			$('.shapefile').each(function(){
-				if ($(this).children('a').get(0).id == shapefile_id){
-					$(this).addClass('active');
-					$('#description').text(shapefile_description);
-					$('h1').text("Shapefile: "+$(element).text());
-				};
-			});
-
-			TETHYS_EDIT_MAP.swapKmlService(url);
-
-		};
-	</script>
 {% endblock %}

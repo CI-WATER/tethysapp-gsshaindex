@@ -540,3 +540,27 @@ def check_workspace(dataset_engine):
         print "Workspace already exists"
 
     return workspace
+
+def delete_layer(dataset_engine):
+
+    result = dataset_engine.get_layer(layer_id='gsshaindex:jocelynn')
+
+    if result['success'] == True:
+        layer = dataset_engine.delete_layer(layer_id='gsshaindex:jocelynn')
+        print "Layer deleted"
+    else:
+        pass
+
+    return result
+
+def delete_resource(dataset_engine):
+
+    result = dataset_engine.get_resource(resource_id='gsshaindex:jocelynn')
+
+    if result['success'] == True:
+        resource = dataset_engine.delete_resource(resource_id='gsshaindex:jocelynn')
+        print "Resource deleted"
+    else:
+        pass
+
+    return result

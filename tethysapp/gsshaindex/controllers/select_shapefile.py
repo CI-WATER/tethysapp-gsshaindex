@@ -55,7 +55,7 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     id = shapefile_dataset['result']['results'][0]['id']
     shapefile_search = CKAN_engine.search_datasets({'id':shapefile_dataset['result']['results'][0]['id']})
     shapefile_search_list =  shapefile_search['result']['results'][0]['resources']
-    print "SHAPEFILES: ",shapefile_search_list
+
     if len(shapefile_search_list) == 0:
         shapefile_id = "NONE"
         editable_map = {'height': '600px',
@@ -90,7 +90,7 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
 
     shapefile_list.sort(key=operator.itemgetter('name'))
 
-    print "SHAPEFILE LIST: ", shapefile_list
+
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -144,32 +144,54 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
 
     overlay_result = show_overlay(None, job_id, index_name)
 
-    print list(overlay_result['resource']['latlon_bbox'][:-1])
 
     if overlay_result['success'] == True:
+        unordered_list = list(overlay_result['resource']['native_bbox'][:-1])
+        ordered_list = [int(round(float(unordered_list[0]))),int(round(float(unordered_list[3]))),int(round(float(unordered_list[2]))),int(round(float(unordered_list[1])))]
+        avg_x = int(round((float(unordered_list[0])+float(unordered_list[2]))/2))
+        avg_y = int(round((float(unordered_list[1])+float(unordered_list[3]))/2))
+        projection = overlay_result['resource']['projection']
+
+        print avg_x
+
         map_view = {'height': '600px',
                     'width': '100%',
                     'controls': ['ZoomSlider',
-                                 {'ZoomToExtent': {'projection': 'EPSG:4326',
-                                                   'extent': list(overlay_result['resource']['latlon_bbox'][:-1])}},
+                                 # {'ZoomToExtent': {'projection': projection,
+                                 #                   'extent': ordered_list}},
                     ],
                     'layers': [{'WMS': {'url': overlay_result['layer']['catalog']+'wms',
-                                        'params': {'LAYERS': overlay_result['layer']['name']},
+                                        'params': {'LAYERS': overlay_result['layer']['name'],
+                                                   'BBOX': overlay_result['resource']['latlon_bbox']},
                                         'serverType': 'geoserver'}
                                 },
                     ],
-                    'view': {'projection': 'EPSG:4326',
-                             'center': [-100, 40], 'zoom': 3.5,
-                             'maxZoom': 18, 'minZoom': 3},
+                    # 'view': {'projection': 'EPSG:4326',
+                    #          'center': [-140, 50], 'zoom': 8,
+                    #          'maxZoom': 18, 'minZoom': 3},
                     'base_map': 'OpenStreetMap'
   }
+        print map_view
+        pprint.pprint(map_view)
 
     else:
 
         map_view = {'height': '600px',
-                            'width': '100%',
-                            'maps_api_key':maps_api_key,
-                            'output_format': 'WKT'}
+                    'width': '100%',
+                    'controls': ['ZoomSlider',
+                                 # {'ZoomToExtent': {'projection': projection,
+                                 #                   'extent': ordered_list}},
+                    ],
+                    'layers': [{'WMS': {'url': 'http://192.168.59.103:8181/geoserver/wms',
+                                        'params': {'LAYERS': 'sf:roads'},
+                                        'serverType': 'geoserver'}
+                                },
+                    ],
+                    # 'view': {'projection': 'EPSG:4326',
+                    #          'center': [-140, 50], 'zoom': 8,
+                    #          'maxZoom': 18, 'minZoom': 3},
+                    'base_map': 'OpenStreetMap'
+        }
 
 
 
@@ -191,13 +213,29 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
                 'multiple': False,
                 'options': projection_list}
 
+    # map_view = {'height': '600px',
+    #                 'width': '100%',
+    #                 'controls': ['ZoomSlider',
+    #                              # {'ZoomToExtent': {'projection': projection,
+    #                              #                   'extent': ordered_list}},
+    #                 ],
+    #                 'layers': [{'WMS': {'url': 'http://192.168.59.103:8181/geoserver/gsshaindex/wms?service=WMS&version=1.1.0&request=GetMap&layers=gsshaindex:jocelynn&styles=&bbox=226358.71875,4091981.5,676167.25,4656372.0&width=408&height=512&srs=EPSG:3819&format=image/png',
+    #                                     'serverType': 'geoserver'}
+    #                             },
+    #                 ],
+    #                 # 'view': {'projection': 'EPSG:4326',
+    #                 #          'center': [-140, 50], 'zoom': 8,
+    #                 #          'maxZoom': 18, 'minZoom': 3},
+    #                 'base_map': 'OpenStreetMap'
+    #     }OpenStreetMap
+
     context['job_id'] = job_id
     context['index_name'] = index_name
-    context['shapefile_list'] = shapefile_list
-    context['file_name'] = file_name
-    context['file_id'] = file_id
-    context['file_description'] = file_description
-    context['file_url'] = file_url
+    # context['shapefile_list'] = shapefile_list
+    # context['file_name'] = file_name
+    # context['file_id'] = file_id
+    # context['file_description'] = file_description
+    # context['file_url'] = file_url
     context['shapefile_id'] = shapefile_id
     context['projection_list'] = projection_list
     context['select_input2'] = select_input2
@@ -218,8 +256,8 @@ def show_overlay(request, job_id, index_name):
     context = {}
 
     sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
-    result = sde.get_layer(layer_id='gsshaindex:jocelynn')
-    resource = sde.get_resource(resource_id='gsshaindex:jocelynn', debug=True)
+    result = sde.get_layer(layer_id='gsshaindex:ZipCodes')
+    resource = sde.get_resource(resource_id='gsshaindex:ZipCodes', debug=True)
 
     if result['success'] == True:
         url = result['result']['wms']['kml']
@@ -227,7 +265,10 @@ def show_overlay(request, job_id, index_name):
         kml_links.append(url)
 
     if not request:
-        return {'layer': result['result'], 'resource': resource['result'], 'success':result['success']}
+        if result['success'] == True:
+            return {'layer': result['result'], 'resource': resource['result'], 'success':result['success']}
+        else:
+            return {'success':False}
     else:
         return JsonResponse({'kml_links': kml_links, 'success':result['success']})
 
@@ -251,6 +292,7 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     """
     context = {}
     user = str(request.user)
+    user.lower()
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -267,12 +309,13 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     # Get the params
     params = request.POST
     print "PARAMS: ", params
-    files = request.FILES
+    files = request.FILES.getlist('shapefile_files')
 
-    input_files = []
-    for file in files.getlist('shapefile_files'):
-        print file
-        input_files.append(file)
+    shp_name = ''
+    for file in files:
+        print file.name
+        if file.name.endswith('.shp'):
+            shp_name = file.name[:-4]
 
     name = params['shapefile_name']
     description = params['shapefile_description']
@@ -281,100 +324,61 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     bad_char = "',.<>()[]{}=+-/\"|:;\\^?!~`@#$%&* "
     for char in bad_char:
         new_name = name.replace(char,"_")
-    zip_name = new_name + ".zip"
-    zip_path = os.path.join(userDir, zip_name)
 
-    shp_list = []
 
-    for file in input_files:
-        print file.name
-        if file.name.endswith('.shp'):
-            shp_list.append({file.name: file.file})
-            new_name = file.name[:-4]
-        elif file.name.endswith('.shx'):
-            shp_list.append({file.name: file.file})
-        elif file.name.endswith('.dbf'):
-            shp_list.append({file.name: file.file})
-        elif file.name.endswith('.prj'):
-            shp_list.append({file.name: file.file})
-        elif file.name.endswith('.sbx'):
-            shp_list.append({file.name: file.file})
-        elif file.name.endswith('.sbn'):
-            shp_list.append({file.name: file.file})
-        elif file.name.endswith('.xml'):
-            shp_list.append({file.name: file.file})
+    # Start Spatial Dataset Engine
+    dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
 
-    print new_name
-    print shp_list
+    # Check to see if Spatial Dataset Engine Exists
+    workspace = gi_lib.check_workspace(dataset_engine)
 
-    temp_dir = os.path.join(userDir, new_name)
-    os.mkdir(temp_dir)
+    layer = gi_lib.delete_layer(dataset_engine)
+    resource = gi_lib.delete_resource(dataset_engine)
 
-    for thing in shp_list:
-        file_path = os.path.join(temp_dir, thing.keys()[0])
+    feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:jocelynn', shapefile_upload=files, overwrite=True, debug=True)
 
-        with open(file_path, 'w') as f:
-            f.write(thing.values()[0].read())
-
-    # Get list of files to be zipped
-    writeFile_list = os.listdir(temp_dir)
-
-    # Add files to the zip folder
-    with zipfile.ZipFile(zip_path, "w") as shp_zip:
-        for item in writeFile_list:
-            abs_path = os.path.join(temp_dir, item)
-            archive_path = os.path.join(new_name, item)
-            shp_zip.write(abs_path, archive_path)
+    # feature_resource = dataset_engine.create_postgis_feature_resource(store_id = 'gsshaindex:shapefiles', table=user, host='172.17.42.1', port='5435', database='gsshaindex_gsshapy_db',user='tethys_db_manager',password='(|w@ter', debug=True)
 
     # Add shapefile to database
     # Clear the workspace
 
-    wkt_json = {'type': 'WKTGeometryCollection',
-                            'geometries': ''}
+    # wkt_json = {'type': 'WKTGeometryCollection',
+    #                         'geometries': ''}
+    #
+    # kml = ""
 
-    kml = ""
-
-
-    ### Need to figure out what to do with this code
-    for root, dirs, files in os.walk(temp_dir):
-        for file in files:
-            if "." in file:
-                new_name = str(user)+file[-4:]
-                os.rename(os.path.join(root,file), os.path.join(root,new_name))
-                if file.endswith(".dbf"):
-                    dbf_path = os.path.join(root,new_name)
-
-    #Try deleting that table name
-    delete_statement = '''DROP TABLE '''+ user +''';'''
-    try:
-        gsshapy_engine.execute(delete_statement)
-    except:
-        pass
+    # #Try deleting that table name
+    # delete_statement = '''DROP TABLE '''+ user +''';'''
+    # try:
+    #     gsshapy_engine.execute(delete_statement)
+    # except:
+    #     pass
 
     # Write statement that will create table for shapefile in the database
-    shapefile2pgsql = subprocess.Popen([shp2pgsql,
-                                        '-s',
-                                        srid,
-                                        str(dbf_path)],
-                                       stdout=subprocess.PIPE)
+    # shapefile2pgsql = subprocess.Popen([shp2pgsql,
+    #                                     '-s',
+    #                                     srid,
+    #                                     str(dbf_path)],
+    #                                    stdout=subprocess.PIPE)
 
-    print srid
+    # print srid
+
+    # Store name and description in the shapefile db
+    # add_table_name_col = '''ALTER TABLE '''+ user +''' ADD COLUMN shapefile_name text;'''
+    # add_table_description_col = '''ALTER TABLE '''+ user +''' ADD COLUMN shapefile_description text;'''
+    # add_table_name = '''UPDATE '''+ user +''' shapefile_name='''+ name +''';'''
+    # add_table_description = '''UPDATE '''+ user +''' shapefile_description='''+ description +''';'''
 
     # Check to see if there are errors or if it worked
-    sql, error = shapefile2pgsql.communicate()
-    print "ERROR:", error
-
-    if error == None:
-        result = gsshapy_engine.execute(sql)
-
-
-        # Start Spatial Dataset Engine
-        dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
-
-        # Check to see if Spatial Dataset Engine Exists
-        workspace = gi_lib.check_workspace(dataset_engine)
-
-        feature_resource = dataset_engine.create_postgis_feature_resource(store_id = 'gsshaindex:shapefiles', table=user, host='172.17.42.1', port='5435', database='gsshaindex_gsshapy_db',user='tethys_db_manager',password='(|w@ter', debug=True)
+    # sql, error = shapefile2pgsql.communicate()
+    # print "ERROR:", error
+    # print user
+    # if error == None:
+    #     result = gsshapy_engine.execute(sql)
+        # result = gsshapy_engine.execute(add_table_name_col)
+        # result = gsshapy_engine.execute(add_table_description_col)
+        # result = gsshapy_engine.execute(add_table_name)
+        # result = gsshapy_engine.execute(add_table_description)
 
 
 
@@ -384,5 +388,5 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     # shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
     # result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description, srid)
 
-    return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shapefile_id}))
+    return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shp_name}))
 
