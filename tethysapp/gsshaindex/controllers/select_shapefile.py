@@ -142,12 +142,36 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     job_session.commit()
     job_session.close()
 
+    overlay_result = show_overlay(None, job_id, index_name)
 
-    editable_map = {'height': '600px',
-                        'width': '100%',
-                        'maps_api_key':maps_api_key,
-                        'output_format': 'WKT',
-                        'reference_kml_action':'/apps/gsshaindex/'+ job_id + '/show-overlay/' + index_name}
+    print list(overlay_result['resource']['latlon_bbox'][:-1])
+
+    if overlay_result['success'] == True:
+        map_view = {'height': '600px',
+                    'width': '100%',
+                    'controls': ['ZoomSlider',
+                                 {'ZoomToExtent': {'projection': 'EPSG:4326',
+                                                   'extent': list(overlay_result['resource']['latlon_bbox'][:-1])}},
+                    ],
+                    'layers': [{'WMS': {'url': overlay_result['layer']['catalog']+'wms',
+                                        'params': {'LAYERS': overlay_result['layer']['name']},
+                                        'serverType': 'geoserver'}
+                                },
+                    ],
+                    'view': {'projection': 'EPSG:4326',
+                             'center': [-100, 40], 'zoom': 3.5,
+                             'maxZoom': 18, 'minZoom': 3},
+                    'base_map': 'OpenStreetMap'
+  }
+
+    else:
+
+        map_view = {'height': '600px',
+                            'width': '100%',
+                            'maps_api_key':maps_api_key,
+                            'output_format': 'WKT'}
+
+
 
 
     # Create an array of the projections for the selet_projection modal
@@ -170,7 +194,6 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     context['job_id'] = job_id
     context['index_name'] = index_name
     context['shapefile_list'] = shapefile_list
-    context['google_map'] = editable_map
     context['file_name'] = file_name
     context['file_id'] = file_id
     context['file_description'] = file_description
@@ -178,6 +201,7 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     context['shapefile_id'] = shapefile_id
     context['projection_list'] = projection_list
     context['select_input2'] = select_input2
+    context['map_view'] = map_view
 
 
     return render(request, 'gsshaindex/select_shapefile.html', context)
@@ -195,13 +219,17 @@ def show_overlay(request, job_id, index_name):
 
     sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
     result = sde.get_layer(layer_id='gsshaindex:jocelynn')
+    resource = sde.get_resource(resource_id='gsshaindex:jocelynn', debug=True)
 
     if result['success'] == True:
         url = result['result']['wms']['kml']
         print url
         kml_links.append(url)
 
-    return JsonResponse({'kml_links': kml_links})
+    if not request:
+        return {'layer': result['result'], 'resource': resource['result'], 'success':result['success']}
+    else:
+        return JsonResponse({'kml_links': kml_links, 'success':result['success']})
 
 
 def get_srid_from_wkt(request):
