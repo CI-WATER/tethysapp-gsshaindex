@@ -49,49 +49,6 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     # Create a session
     gsshapy_session = gsshapy_sessionmaker()
 
-    shapefile_list = []
-
-    # Get list of shapefiles
-    id = shapefile_dataset['result']['results'][0]['id']
-    shapefile_search = CKAN_engine.search_datasets({'id':shapefile_dataset['result']['results'][0]['id']})
-    shapefile_search_list =  shapefile_search['result']['results'][0]['resources']
-
-    if len(shapefile_search_list) == 0:
-        shapefile_id = "NONE"
-        editable_map = {'height': '600px',
-                        'width': '100%',
-                        'maps_api_key':maps_api_key,
-                        'output_format': 'WKT'}
-
-        context['job_id'] = job_id
-        context['index_name'] = index_name
-        context['shapefile_list'] = shapefile_list
-        context['google_map'] = editable_map
-        context['shapefile_id'] = shapefile_id
-
-        return render(request, 'gsshaindex/select_shapefile.html', context)
-    else:
-        pass
-
-    # Fill the array with information on the shapefiles
-    for result in shapefile_search_list:
-        if result.get('description')=='':
-            description = "NONE"
-        else:
-            description = result.get('description')
-        shapefile_list.append({"name":result.get('name'), "id":result.get('id'), "description":description, "url":result.get('url')})
-
-    for shapefile in shapefile_list:
-        if shapefile['id'] == shapefile_id:
-            file_id = shapefile['id']
-            file_name = shapefile['name']
-            file_url = shapefile['url']
-            file_description = shapefile['description']
-
-    shapefile_list.sort(key=operator.itemgetter('name'))
-
-
-
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
     gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
@@ -132,7 +89,7 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
         index_map_dataset = gi_lib.check_dataset("index-maps", CKAN_engine)
         resource, status = gi_lib.add_kml_CKAN(index_map_dataset, CKAN_engine, clusterFile, resource_name)
 
-        for resource in result['resources']:
+        for resource in resource['resources']:
             if resource['name'] == resource_name:
                 resource_list[new_index.name] = {'url':resource['url'], 'full_name':resource['name']}
                 break

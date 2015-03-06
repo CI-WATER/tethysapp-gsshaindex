@@ -289,18 +289,6 @@ def select_index(request, job_id):
     # Get project file id
     project_file_id = job.new_model_id
 
-    # Get list of shapefiles
-    shapefile_dataset = gi_lib.check_dataset('shapefiles', CKAN_engine)
-    id = shapefile_dataset['result']['results'][0]['id']
-    shapefile_search = CKAN_engine.search_datasets({'id':shapefile_dataset['result']['results'][0]['id']})
-    shapefile_list =  shapefile_search['result']['results'][0]['resources']
-    print "SHAPEFILES: ",shapefile_list
-    if len(shapefile_list) == 0:
-        shapefile_id = "NONE"
-    else:
-        shapefile_id = shapefile_list[0]['id']
-    print shapefile_id
-
     # Give options for editing the index map
     if ('select_index' in request.POST):
         params = request.POST
@@ -311,7 +299,7 @@ def select_index(request, job_id):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
         elif (params['method'] == "Upload shapefile"):
             # messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
-            return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id': shapefile_id}))
+            return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id': "None"}))
         elif (params['method'] == "Merge index maps"):
             # messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'index_name':index_name}))
