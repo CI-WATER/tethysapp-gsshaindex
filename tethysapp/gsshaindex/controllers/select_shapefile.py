@@ -99,8 +99,12 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     job_session.commit()
     job_session.close()
 
-    overlay_result = show_overlay(None, job_id, index_name)
 
+    ''' Hardcoded shapefiles, but should be user'''
+    overlay_result = show_overlay(None, job_id, index_name, 'shapefiles', shapefile_id)
+
+    print "OVERLAY RESULT", overlay_result
+    print overlay_result['success']
 
     if overlay_result['success'] == True:
         unordered_list = list(overlay_result['resource']['native_bbox'][:-1])
@@ -150,41 +154,18 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
                     'base_map': 'OpenStreetMap'
         }
 
-
-
-
     # Create an array of the projections for the selet_projection modal
     projection_query = '''SELECT srid, srtext FROM spatial_ref_sys'''
-
     result_prj_query = gsshapy_engine.execute(projection_query)
-
     projection_list = []
-
     for row in result_prj_query:
         srid = row['srid']
         short_desc = row['srtext'].split('"')[1]
         projection_list.append((short_desc, srid))
-
     select_input2 = {'display_text': 'Select Projection',
                 'name': 'select_projection',
                 'multiple': False,
                 'options': projection_list}
-
-    # map_view = {'height': '600px',
-    #                 'width': '100%',
-    #                 'controls': ['ZoomSlider',
-    #                              # {'ZoomToExtent': {'projection': projection,
-    #                              #                   'extent': ordered_list}},
-    #                 ],
-    #                 'layers': [{'WMS': {'url': 'http://192.168.59.103:8181/geoserver/gsshaindex/wms?service=WMS&version=1.1.0&request=GetMap&layers=gsshaindex:jocelynn&styles=&bbox=226358.71875,4091981.5,676167.25,4656372.0&width=408&height=512&srs=EPSG:3819&format=image/png',
-    #                                     'serverType': 'geoserver'}
-    #                             },
-    #                 ],
-    #                 # 'view': {'projection': 'EPSG:4326',
-    #                 #          'center': [-140, 50], 'zoom': 8,
-    #                 #          'maxZoom': 18, 'minZoom': 3},
-    #                 'base_map': 'OpenStreetMap'
-    #     }OpenStreetMap
 
     context['job_id'] = job_id
     context['index_name'] = index_name
@@ -202,23 +183,23 @@ def shapefile_index(request, job_id, index_name, shapefile_id):
     return render(request, 'gsshaindex/select_shapefile.html', context)
 
 
-def show_overlay(request, job_id, index_name):
+def show_overlay(request, job_id, index_name, user, shapefile_name):
     """
     This action is used to pass the kml data to the google map.
     It must return a JSON response with a Python dictionary that
     has the key 'kml_links'.
     """
     kml_links = []
-
     context = {}
 
+    print "SHAPEFILE NAME FROM SHOW OVERLAY ", shapefile_name
+
     sde = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
-    result = sde.get_layer(layer_id='gsshaindex:ZipCodes')
-    resource = sde.get_resource(resource_id='gsshaindex:ZipCodes', debug=True)
+    result = sde.get_layer(layer_id='gsshaindex:'+ user)
+    resource = sde.list_resources(store=user, debug=True)
 
     if result['success'] == True:
         url = result['result']['wms']['kml']
-        print url
         kml_links.append(url)
 
     if not request:
@@ -265,12 +246,10 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
 
     # Get the params
     params = request.POST
-    print "PARAMS: ", params
     files = request.FILES.getlist('shapefile_files')
 
     shp_name = ''
     for file in files:
-        print file.name
         if file.name.endswith('.shp'):
             shp_name = file.name[:-4]
 
@@ -287,63 +266,19 @@ def shapefile_upload(request, job_id, index_name, shapefile_id):
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
 
     # Check to see if Spatial Dataset Engine Exists
-    workspace = gi_lib.check_workspace(dataset_engine)
+    # workspace = gi_lib.check_workspace(dataset_engine)
 
-    layer = gi_lib.delete_layer(dataset_engine)
-    resource = gi_lib.delete_resource(dataset_engine)
 
-    feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:jocelynn', shapefile_upload=files, overwrite=True, debug=True)
+    '''Hardcoded shapefile, but should be user'''
+    store = dataset_engine.list_resources(store='shapefiles', debug=True)
 
+    stuff = gi_lib.clear_store(dataset_engine, user)
+
+    print "FEATURE RESOURCE"
+    '''Hardcoded shapefiles, but should be user'''
+    feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:'+user, shapefile_upload=files, overwrite=False, debug=True)
     # feature_resource = dataset_engine.create_postgis_feature_resource(store_id = 'gsshaindex:shapefiles', table=user, host='172.17.42.1', port='5435', database='gsshaindex_gsshapy_db',user='tethys_db_manager',password='(|w@ter', debug=True)
 
-    # Add shapefile to database
-    # Clear the workspace
-
-    # wkt_json = {'type': 'WKTGeometryCollection',
-    #                         'geometries': ''}
-    #
-    # kml = ""
-
-    # #Try deleting that table name
-    # delete_statement = '''DROP TABLE '''+ user +''';'''
-    # try:
-    #     gsshapy_engine.execute(delete_statement)
-    # except:
-    #     pass
-
-    # Write statement that will create table for shapefile in the database
-    # shapefile2pgsql = subprocess.Popen([shp2pgsql,
-    #                                     '-s',
-    #                                     srid,
-    #                                     str(dbf_path)],
-    #                                    stdout=subprocess.PIPE)
-
-    # print srid
-
-    # Store name and description in the shapefile db
-    # add_table_name_col = '''ALTER TABLE '''+ user +''' ADD COLUMN shapefile_name text;'''
-    # add_table_description_col = '''ALTER TABLE '''+ user +''' ADD COLUMN shapefile_description text;'''
-    # add_table_name = '''UPDATE '''+ user +''' shapefile_name='''+ name +''';'''
-    # add_table_description = '''UPDATE '''+ user +''' shapefile_description='''+ description +''';'''
-
-    # Check to see if there are errors or if it worked
-    # sql, error = shapefile2pgsql.communicate()
-    # print "ERROR:", error
-    # print user
-    # if error == None:
-    #     result = gsshapy_engine.execute(sql)
-        # result = gsshapy_engine.execute(add_table_name_col)
-        # result = gsshapy_engine.execute(add_table_description_col)
-        # result = gsshapy_engine.execute(add_table_name)
-        # result = gsshapy_engine.execute(add_table_description)
-
-
-
-
-    # Add the files to CKAN
-    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
-    # shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
-    # result = gi_lib.append_shapefile_CKAN(shapefile_dataset, CKAN_engine, zip_path, name, description, srid)
 
     return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_id':shp_name}))
 

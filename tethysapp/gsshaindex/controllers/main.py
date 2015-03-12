@@ -334,7 +334,6 @@ def select_index(request, job_id):
                     'maps_api_key':maps_api_key,
                     'drawing_types_enabled':[]}
 
-    context['shapefile_list'] = shapefile_list
     context['google_map'] = editable_map
     context['project_name'] = job.original_name
     context['resource_name'] = resource_name

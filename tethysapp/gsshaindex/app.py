@@ -50,7 +50,7 @@ class GSSHAIndex(TethysAppBase):
                                      url='gsshaindex/get-srid-from-wkt',
                                      controller='gsshaindex.controllers.select_shapefile.get_srid_from_wkt'
                        ),AppController(name='show_overlay',
-                                     url='gsshaindex/{job_id}/show-overlay/{index_name}',
+                                     url='gsshaindex/{job_id}/show-overlay/{index_name}/{user}/{shapefile_name}',
                                      controller='gsshaindex.controllers.select_shapefile.show_overlay'
                        ),AppController(name='combine_index',
                                      url='gsshaindex/{job_id}/combine-index/{index_name}',

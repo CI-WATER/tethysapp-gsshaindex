@@ -541,26 +541,44 @@ def check_workspace(dataset_engine):
 
     return workspace
 
-def delete_layer(dataset_engine):
+def delete_layer(dataset_engine, user):
 
-    result = dataset_engine.get_layer(layer_id='gsshaindex:jocelynn')
+    result = dataset_engine.get_layer(layer_id='gsshaindex:' + user)
+    print "THIS IS GARBAGE!!!"
+    print result
 
     if result['success'] == True:
-        layer = dataset_engine.delete_layer(layer_id='gsshaindex:jocelynn')
+        layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + user)
         print "Layer deleted"
     else:
         pass
 
     return result
 
-def delete_resource(dataset_engine):
+def delete_resource(dataset_engine, user):
 
-    result = dataset_engine.get_resource(resource_id='gsshaindex:jocelynn')
+    result = dataset_engine.get_resource(resource_id='gsshaindex:' + user)
 
     if result['success'] == True:
-        resource = dataset_engine.delete_resource(resource_id='gsshaindex:jocelynn')
+        resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + user)
         print "Resource deleted"
     else:
         pass
 
     return result
+
+def clear_store(dataset_engine, user):
+
+    print "LIST OF RESOURCES"
+    # Get list of resources in the user's store
+    resource_list = dataset_engine.list_resources(store=user, debug=True)
+
+    # If there are resources in the list
+    if resource_list['success'] == True:
+        # Get list of layers
+        for resource in resource_list['result']:
+            print "RESOURCE INFO"
+            layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + resource, debug=True)
+            resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + resource, debug=True)
+
+    store = dataset_engine.delete_store(store_id='gsshaindex:'+user, debug=True)
