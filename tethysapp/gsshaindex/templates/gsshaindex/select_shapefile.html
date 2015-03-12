@@ -15,7 +15,7 @@
 {% endblock %}
 
 {% block modal_block %}
-  <form action="{% url 'gsshaindex:shapefile_upload' job_id=job_id index_name=index_name shapefile_id=shapefile_id %}" method="post" enctype="multipart/form-data">
+  <form action="{% url 'gsshaindex:shapefile_upload' job_id=job_id index_name=index_name %}" method="post" enctype="multipart/form-data">
       {% csrf_token %}
         <div id="select_files" class="modal fade" tabindex="-1" role="dialog" >
           <div class="modal-dialog">
@@ -98,7 +98,7 @@
     	<div style="padding:15px" align="center">
 	    	<a href="#select_files" class="btn btn-primary" data-toggle="modal">Upload Shapefile</a>
 	    </div>
-    	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id shapefile_id=shapefile_id%}" method="post">
+    	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id %}" method="post">
             {% csrf_token %}
 	    </form>
     </div>

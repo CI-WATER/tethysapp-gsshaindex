@@ -569,16 +569,34 @@ def delete_resource(dataset_engine, user):
 
 def clear_store(dataset_engine, user):
 
-    print "LIST OF RESOURCES"
     # Get list of resources in the user's store
-    resource_list = dataset_engine.list_resources(store=user, debug=True)
+    resource_list = dataset_engine.list_resources(store=user)
 
     # If there are resources in the list
     if resource_list['success'] == True:
         # Get list of layers
         for resource in resource_list['result']:
-            print "RESOURCE INFO"
-            layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + resource, debug=True)
-            resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + resource, debug=True)
+            layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + resource)
+            resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + resource)
 
-    store = dataset_engine.delete_store(store_id='gsshaindex:'+user, debug=True)
+    store = dataset_engine.delete_store(store_id='gsshaindex:'+user)
+
+    return store
+
+def get_layer_and_resource(dataset_engine, user):
+
+    # Get list of resources in the user's store
+    resource_list = dataset_engine.list_resources(store=user)
+
+    # If there are resources in the list
+    if resource_list['success'] == True and len(resource_list['result'])>0:
+        # Get list of layers
+        for resource in resource_list['result']:
+            layer = dataset_engine.get_layer(layer_id='gsshaindex:' + resource)
+            resource = dataset_engine.get_resource(resource_id='gsshaindex:' + resource)
+            if layer['success']==True and resource['success'] == True:
+                return {'layer':layer['result'], 'resource':resource['result'], 'success':True}
+            else:
+                return {'success':False}
+    else:
+        return {'success':False}
