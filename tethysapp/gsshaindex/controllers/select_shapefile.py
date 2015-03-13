@@ -28,7 +28,7 @@ app_config = ConfigParser.RawConfigParser()
 app_config.read(config_path)
 shp2pgsql = app_config.get('postgis', 'shp2pgsql_path')
 
-def shapefile_index(request, job_id, index_name):
+def shapefile_index(request, job_id, index_name, shapefile_name):
     """
     Controller for the selecting the shapefile to use to define the index map.
     """
@@ -42,9 +42,6 @@ def shapefile_index(request, job_id, index_name):
 
     # Get project file id
     project_file_id = job.new_model_id
-
-    # Make sure there is a shapefile dataset
-    shapefile_dataset = gi_lib.check_dataset("shapefiles", CKAN_engine)
 
     # Create a session
     gsshapy_session = gsshapy_sessionmaker()
@@ -63,12 +60,10 @@ def shapefile_index(request, job_id, index_name):
 
     # Find the contents of GeoServer for the user and display them
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
-    overlay_result = gi_lib.get_layer_and_resource(dataset_engine, user)
-    pprint.pprint(overlay_result)
+    overlay_result = gi_lib.get_layer_and_resource(dataset_engine, user, shapefile_name)
 
     if overlay_result['success'] == True:
         url = overlay_result['layer']['wms']['kml']
-        file_name = overlay_result['resource']['name']
         coord_list = list(overlay_result['resource']['latlon_bbox'][:-1])
         avg_x = int(round((float(coord_list[0])+float(coord_list[1]))/2))
         avg_y = int(round((float(coord_list[2])+float(coord_list[3]))/2))
@@ -93,7 +88,6 @@ def shapefile_index(request, job_id, index_name):
         pprint.pprint(map_view)
 
     else:
-        file_name =''
         map_view = {'height': '400px',
                     'width': '100%',
                     'controls': ['ZoomSlider',
@@ -126,7 +120,7 @@ def shapefile_index(request, job_id, index_name):
 
     context['job_id'] = job_id
     context['index_name'] = index_name
-    context['file_name'] = file_name
+    context['file_name'] = shapefile_name
     # context['file_description'] = file_description
     context['projection_list'] = projection_list
     context['select_input2'] = select_input2
@@ -144,8 +138,6 @@ def show_overlay(request, job_id, index_name, user, shapefile_name):
     """
     kml_links = []
     context = {}
-
-    print "SHAPEFILE NAME FROM SHOW OVERLAY ", shapefile_name
 
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
     result = dataset_engine.get_layer(layer_id='gsshaindex:'+ shapefile_name, debug=True)
@@ -214,7 +206,6 @@ def shapefile_upload(request, job_id, index_name):
     for char in bad_char:
         new_name = name.replace(char,"_")
 
-
     # Start Spatial Dataset Engine
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
 
@@ -222,10 +213,10 @@ def shapefile_upload(request, job_id, index_name):
     workspace = gi_lib.check_workspace(dataset_engine)
 
     # Clear the store and create a new feature resource
-    store = gi_lib.clear_store(dataset_engine, user)
+    # store = gi_lib.clear_store(dataset_engine, user)
     print "FEATURE RESOURCE"
-    feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:'+user, shapefile_upload=files, overwrite=False, debug=True)
+    feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:'+user+'-'+shp_name, shapefile_upload=files, overwrite=True, debug=True)
 
 
-    return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name}))
+    return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_name':shp_name}))
 

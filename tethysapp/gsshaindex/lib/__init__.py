@@ -544,49 +544,49 @@ def check_workspace(dataset_engine):
 def delete_layer(dataset_engine, user):
 
     result = dataset_engine.get_layer(layer_id='gsshaindex:' + user)
-    print "THIS IS GARBAGE!!!"
-    print result
-
     if result['success'] == True:
         layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + user)
         print "Layer deleted"
     else:
         pass
-
     return result
 
 def delete_resource(dataset_engine, user):
 
     result = dataset_engine.get_resource(resource_id='gsshaindex:' + user)
-
     if result['success'] == True:
         resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + user)
         print "Resource deleted"
     else:
         pass
-
     return result
 
 def clear_store(dataset_engine, user):
 
-    # Get list of resources in the user's store
-    resource_list = dataset_engine.list_resources(store=user)
+    try:
+        # Get list of resources in the user's store
+        resource_list = dataset_engine.list_resources(store=user)
 
-    # If there are resources in the list
-    if resource_list['success'] == True:
-        # Get list of layers
-        for resource in resource_list['result']:
-            layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + resource)
-            resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + resource)
+        # If there are resources in the list
+        if resource_list['success'] == True:
+            # Get list of layers
+            for resource in resource_list['result']:
+                layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + resource)
+                resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + resource)
 
-    store = dataset_engine.delete_store(store_id='gsshaindex:'+user)
+        store = dataset_engine.delete_store(store_id='gsshaindex:'+user)
+    except:
+        store = {'success':True}
 
     return store
 
-def get_layer_and_resource(dataset_engine, user):
+def get_layer_and_resource(dataset_engine, user, shapefile_name):
 
     # Get list of resources in the user's store
-    resource_list = dataset_engine.list_resources(store=user)
+    try:
+        resource_list = dataset_engine.list_resources(store=user+'-'+shapefile_name, debug=True)
+    except:
+        return {'success':False}
 
     # If there are resources in the list
     if resource_list['success'] == True and len(resource_list['result'])>0:

@@ -299,7 +299,7 @@ def select_index(request, job_id):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
         elif (params['method'] == "Upload shapefile"):
             # messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
-            return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name}))
+            return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_name':"None"}))
         elif (params['method'] == "Merge index maps"):
             # messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'index_name':index_name}))

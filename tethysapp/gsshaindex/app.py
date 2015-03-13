@@ -41,7 +41,7 @@ class GSSHAIndex(TethysAppBase):
                                      url='gsshaindex/{job_id}/edit-index/{index_name}',
                                      controller='gsshaindex.controllers.draw_index.edit_index'
                        ),AppController(name='shapefile_index',
-                                     url='gsshaindex/{job_id}/shapefile-index/{index_name}',
+                                     url='gsshaindex/{job_id}/shapefile-index/{index_name}/{shapefile_name}',
                                      controller='gsshaindex.controllers.select_shapefile.shapefile_index'
                        ),AppController(name='shapefile_upload',
                                      url='gsshaindex/{job_id}/shapefile-upload/{index_name}',

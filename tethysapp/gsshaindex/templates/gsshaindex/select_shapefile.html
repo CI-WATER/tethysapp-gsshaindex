@@ -98,7 +98,7 @@
     	<div style="padding:15px" align="center">
 	    	<a href="#select_files" class="btn btn-primary" data-toggle="modal">Upload Shapefile</a>
 	    </div>
-    	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id %}" method="post">
+    	<form id="select_shapefile" action="{% url 'gsshaindex:shapefile_index' index_name=index_name job_id=job_id shapefile_name=file_name %}" method="post">
             {% csrf_token %}
 	    </form>
     </div>
