@@ -88,15 +88,7 @@ function submit_files(){
 
 	if (required_true == true){
 		$("#error_message").hide();
-		if (prj==false){
-			$('#select_files').modal('toggle');
-			$('#select_projection').modal('toggle');
-		};
-		if (prj==true){
-			$('#select_files').modal('toggle');
-			send_prj_request();
-
-		};
+        $("#submit_shapefile_upload").submit();
 	};
 };
 

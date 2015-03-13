@@ -71,8 +71,7 @@ def shapefile_index(request, job_id, index_name, shapefile_name):
         map_view = {'height': '600px',
                     'width': '100%',
                     'controls': ['ZoomSlider',
-                                 # {'ZoomToExtent': {'projection': projection,
-                                 #                   'extent': ordered_list}},
+                                 'ScaleLine',
                     ],
                     'layers': [{'WMS': {'url': url,
                                         'params': {'LAYERS': overlay_result['layer']['name'],},
@@ -91,12 +90,7 @@ def shapefile_index(request, job_id, index_name, shapefile_name):
         map_view = {'height': '400px',
                     'width': '100%',
                     'controls': ['ZoomSlider',
-                                 'Rotate',
-                                 'FullScreen',
                                  'ScaleLine',
-                                 {'ZoomToExtent': {'projection': 'EPSG:4326',
-                                                   'extent': [-135, 22, -55, 54]}},
-                                 {'MousePosition': {'projection': 'EPSG:4326'}},
                     ],
 
                     'view': {'projection': 'EPSG:4326',
@@ -105,25 +99,10 @@ def shapefile_index(request, job_id, index_name, shapefile_name):
                     'base_map': 'OpenStreetMap'
   }
 
-    # Create an array of the projections for the selet_projection modal
-    projection_query = '''SELECT srid, srtext FROM spatial_ref_sys'''
-    result_prj_query = gsshapy_engine.execute(projection_query)
-    projection_list = []
-    for row in result_prj_query:
-        srid = row['srid']
-        short_desc = row['srtext'].split('"')[1]
-        projection_list.append((short_desc, srid))
-    select_input2 = {'display_text': 'Select Projection',
-                'name': 'select_projection',
-                'multiple': False,
-                'options': projection_list}
 
     context['job_id'] = job_id
     context['index_name'] = index_name
     context['file_name'] = shapefile_name
-    # context['file_description'] = file_description
-    context['projection_list'] = projection_list
-    context['select_input2'] = select_input2
     context['map_view'] = map_view
 
 
@@ -197,14 +176,6 @@ def shapefile_upload(request, job_id, index_name):
     for file in files:
         if file.name.endswith('.shp'):
             shp_name = file.name[:-4]
-
-    name = params['shapefile_name']
-    description = params['shapefile_description']
-    srid = params['select_projection']
-    # Reformat the name by removing bad characters
-    bad_char = "',.<>()[]{}=+-/\"|:;\\^?!~`@#$%&* "
-    for char in bad_char:
-        new_name = name.replace(char,"_")
 
     # Start Spatial Dataset Engine
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
