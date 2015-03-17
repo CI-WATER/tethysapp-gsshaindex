@@ -52,6 +52,12 @@ class GSSHAIndex(TethysAppBase):
                        ),AppController(name='show_overlay',
                                      url='gsshaindex/{job_id}/show-overlay/{index_name}/{user}/{shapefile_name}',
                                      controller='gsshaindex.controllers.select_shapefile.show_overlay'
+                       ),AppController(name='get_geojson_from_geoserver',
+                                     url='gsshaindex/get-geojson-from-geoserver/{user}/{shapefile_name}',
+                                     controller='gsshaindex.controllers.select_shapefile.get_geojson_from_geoserver'
+                       ),AppController(name='replace_index_with_shapefile',
+                                     url='gsshaindex/{job_id}/replace-index-with-shapefile/{index_name}/{shapefile_name}',
+                                     controller='gsshaindex.controllers.select_shapefile.replace_index_with_shapefile'
                        ),AppController(name='combine_index',
                                      url='gsshaindex/{job_id}/combine-index/{index_name}',
                                      controller='gsshaindex.controllers.combine_index.combine_index'

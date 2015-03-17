@@ -60,7 +60,7 @@
 {% endblock %}
 
 {% block app_actions %}
-  <input type="submit" form="select_shapefile" class="btn btn-default" value="Next"/>
+  <a href="{% url 'gsshaindex:replace_index_with_shapefile' index_name=index_name job_id=job_id shapefile_name=file_name %}" class="btn btn-default">Next</a>
 {% endblock %}
 
 {% block scripts %}

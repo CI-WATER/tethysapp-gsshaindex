@@ -62,6 +62,8 @@ def shapefile_index(request, job_id, index_name, shapefile_name):
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
     overlay_result = gi_lib.get_layer_and_resource(dataset_engine, user, shapefile_name)
 
+    print overlay_result['resource']['wfs']['geojson']
+
     if overlay_result['success'] == True:
         url = overlay_result['layer']['wms']['kml']
         coord_list = list(overlay_result['resource']['latlon_bbox'][:-1])
@@ -191,3 +193,54 @@ def shapefile_upload(request, job_id, index_name):
 
     return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_name':shp_name}))
 
+
+def get_geojson_from_geoserver(user, shapefile_name):
+    """
+    This action is used to pass the kml data to the google map.
+    It must return a JSON response with a Python dictionary that
+    has the key 'kml_links'.
+    """
+    kml_links = []
+    context = {}
+
+    # Find the contents of GeoServer for the user and display them
+    dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
+    overlay_result = gi_lib.get_layer_and_resource(dataset_engine, user, shapefile_name)
+
+    print overlay_result['resource']['wfs']['geojson']
+
+    if overlay_result['success'] == True:
+        url = overlay_result['resource']['wfs']['geojson']
+        r= requests.get(url)
+        status = r.status_code
+        print "STATUS: ", status
+        if status == 200:
+            result =  r.json()
+            geojson =  str(result['features'])
+            print "RESULT: ", result
+            return JsonResponse({'geojson':geojson, 'success':True})
+        else:
+            return JsonResponse({'success':False})
+
+
+def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
+    """
+    Controller to replace the index map with the selected shapefile.
+    """
+    context = {}
+    user = str(request.user)
+
+    geojson = get_geojson_from_geoserver(user, shapefile_name)
+
+    print geojson
+
+    if geojson['success'] == False:
+        print "PANIC"
+    else:
+        geojson_result = geojson['geojson']
+
+
+    context['index_name'] = index_name
+    context['job_id'] = job_id
+
+    return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
