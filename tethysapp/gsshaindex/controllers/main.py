@@ -276,6 +276,47 @@ def extract_gssha(request, job_id):
     return redirect(reverse('gsshaindex:select_index', kwargs={'job_id':job_id}))
 
 
+def extract_existing_gssha(request, job_id):
+    '''
+    This takes the file name and id that were submitted and unzips the files.
+    '''
+    context = {}
+    user = str(request.user)
+    session = jobs_sessionmaker()
+    job, success = gi_lib.get_pending_job(job_id, user,session)
+    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+
+    # Specify the workspace
+    controllerDir = os.path.abspath(os.path.dirname(__file__))
+    gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
+    publicDir = os.path.join(gsshaindexDir,'public')
+    userDir = os.path.join(publicDir, str(user))
+    indexMapDir = os.path.join(userDir, 'index_maps')
+
+    # Clear the workspace
+    gi_lib.clear_folder(userDir)
+    gi_lib.clear_folder(indexMapDir)
+
+    # Get url for the resource and extract the GSSHA file
+    url = job.original_url
+    extract_path, unique_dir = gi_lib.extract_zip_from_url(user, url, userDir)
+
+    # Create GSSHAPY Session
+    gsshapy_session = gsshapy_sessionmaker()
+
+    # Find the project file
+    for root, dirs, files in os.walk(userDir):
+        for file in files:
+            if file.endswith(".prj"):
+                project_name = file
+                project_path = os.path.join(root, file)
+                read_dir = os.path.dirname(project_path)
+
+    context['job_id'] = job_id
+
+    return redirect(reverse('gsshaindex:select_index', kwargs={'job_id':job_id}))
+
+
 def select_index(request, job_id):
     """
     Controller for the app home page.

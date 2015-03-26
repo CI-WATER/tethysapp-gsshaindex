@@ -39,6 +39,8 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
     indices = index_raster.indices
     mapTables = index_raster.mapTables
 
+    print "INDICES", indices
+
     mapping_table_number = int(mapping_table_number)
 
     # Process for if descriptions are submitted
@@ -86,10 +88,13 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                                  order_by(MTValue.variable).\
                                  all()
 
+    print "DISTINCT", distinct_vars
+
     # Create an array of the variables in the active map table
     variables = []
     for var in distinct_vars:
         variables.append(var[0])
+
 
     # Cross tabulate manually to populate the mapping table information
     indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
@@ -120,6 +125,8 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
 
     print "VARS",  variables
     print "VALUES", var_values
+
+    print "INDICES", indices
 
     context['indices'] = indices
     context['job_id'] = job_id

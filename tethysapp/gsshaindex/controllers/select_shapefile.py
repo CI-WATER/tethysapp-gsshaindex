@@ -264,22 +264,23 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
 
         # Delete existing indices
         index_raster_indices = index_raster.indices
-        for index in index_raster_indices:
-            bob = gsshapy_session.query(MTIndex).get(index.id)
-            for val in bob.values:
-                gsshapy_session.delete(val)
-            gsshapy_session.delete(bob)
+        # for index in index_raster_indices:
+        #     bob = gsshapy_session.query(MTIndex).get(index.id)
+        #     for val in bob.values:
+        #         gsshapy_session.delete(val)
+        #     gsshapy_session.delete(bob)
 
         srid_name = geojson['crs']
 
         project_file_srid = project_file.srid
 
-        id = 1
+        id = 100
 
         # Loop through each geometry
         for object in geojson_result:
             index_present = False
             object_id = object['id']
+            print object_id
             for index in index_raster_indices:
                 if object_id == index.index:
                     index_present = True
@@ -309,8 +310,11 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
             geom['crs'] = srid_name
             geom_full = json.dumps(geom)
 
+            if id == 7:
+                print geom_full
+
             # Change values in the index map
-            statement = "SELECT ST_SetValue(raster,1,ST_Transform(ST_GeomFromGeoJSON('{0}'), {1}),{2}) FROM idx_index_maps WHERE id = {3};".format(geom_full, project_file_srid, id, index_raster.id)
+            statement = "SELECT ST_SetValue(raster,1,ST_Transform(ST_GeomFromGeoJSON('{0}'), {1}),{2}) FROM idx_index_maps WHERE id = {3};".format(str(geom_full), project_file_srid, id, index_raster.id)
 
             result = gsshapy_engine.execute(statement)
             id += 1
@@ -340,6 +344,8 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
                                    filter(MTValue.mapTable == mapping_table).\
                                    order_by(MTIndex.index).\
                                    all()
+
+            print "INDICES", indices
 
             for index in indices:
                 if not int(index[0]) in ids:

@@ -28,6 +28,9 @@ class GSSHAIndex(TethysAppBase):
                        ),AppController(name='extract_gssha',
                                      url='gsshaindex/{job_id}/extract-gssha',
                                      controller='gsshaindex.controllers.main.extract_gssha'
+                       ),AppController(name='extract_existing_gssha',
+                                     url='gsshaindex/{job_id}/extract-existing-gssha',
+                                     controller='gsshaindex.controllers.main.extract_existing_gssha'
                        ),AppController(name='get_mask_map',
                                      url='gsshaindex/get-mask-map/{file_id}',
                                      controller='gsshaindex.controllers.main.get_mask_map'

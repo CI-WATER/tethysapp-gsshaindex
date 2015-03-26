@@ -27,7 +27,7 @@
                         <td class="name" data-id="{{ job.2 }}">{{job.0}}</td>
                         <td class="date_created" data-id="{{ job.2 }}">{{job.1}}</td>
                         <td><a class="btn btn-mini btn-danger" href="{% url 'gsshaindex:delete' job_id=job.2 return_to='uncompleted' %}">Delete</a></td>
-                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:select_index' job_id=job.2 %}">Continue Modifying Model</a></td>
+                        <td><a class="btn btn-mini btn-info" href="{% url 'gsshaindex:extract_existing_gssha' job_id=job.2 %}">Continue Modifying Model</a></td>
                     </tr>
                 {% endfor %}
             </table>

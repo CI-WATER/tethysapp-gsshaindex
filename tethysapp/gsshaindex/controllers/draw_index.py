@@ -152,13 +152,13 @@ def submit_edits(request, job_id, index_name):
 
             # Get the values for the geometry
             value = geometry['properties']['value']
-            print "WKT: ", value
+            # print "WKT: ", value
 
             # Loop through indices and see if they match
             index_raster_indices = index_raster.indices
             index_present = False
             for index in index_raster_indices:
-                print index
+                # print index
                 if int(index.index) == int(value):
                     index_present = True
                     break
