@@ -536,7 +536,6 @@ def status(request):
     # Create array of jobs. If they haven't been submitted (new_name = None), don't add it to the list.
     job_info=[]
     for job in job:
-        print job.new_name
         if job.new_name != None:
             info=[job.new_name, job.status, job.original_id]
             job_info.append(info)

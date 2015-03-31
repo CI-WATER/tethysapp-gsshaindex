@@ -181,7 +181,7 @@ def replace_values(request, job_id, index_name, mapping_table_number):
     context['index_name'] = index_name
     context['mapping_table_number'] = mapping_table_number
 
-    return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':mapping_table_number}))
+    return redirect(reverse('gsshaindex:submit_mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':mapping_table_number}))
 
 
 def submit_mapping_table(request, job_id, index_name, mapping_table_number):
