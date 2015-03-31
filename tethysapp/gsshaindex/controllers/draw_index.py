@@ -190,18 +190,23 @@ def submit_edits(request, job_id, index_name):
                 srid = project_file.srid
 
             # Change values in the index map
-            different_statement = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
+            change_index_values = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
 
-            result = gi_lib.timeout(gi_lib.draw_update_index, args=(different_statement,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
-
-
-            '''EXPERIMENT DONE'''
+            result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
 
             if result == None:
-                print "THIS DIDN'T WORK"
-                #TODO Write code for when it doesn't work'
+                print "THE SESSION TIMED OUT"
 
-            print "THIS WORKED!!!!!!"
+                messages.error(request, 'The submission timed out. Please try to draw in the changes and submit them again.')
+                job_session.close()
+                gsshapy_session.close()
+                context['index_name'] = index_name
+                context['job_id'] = job_id
+
+                return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
+
+            else:
+                print "THE SUBMISSION WORKED!!!!!!"
 
         # Get the values in the index map
         statement3 = '''SELECT (pvc).*

@@ -270,6 +270,8 @@ def extract_gssha(request, job_id):
     # Add the kmls with their url to the database
     job.current_kmls = json.dumps(current_kmls)
     session.commit()
+    session.close()
+    gsshapy_session.close()
 
     context['job_id'] = job_id
 
