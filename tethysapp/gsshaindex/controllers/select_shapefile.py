@@ -262,25 +262,21 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
     else:
         geojson_result = geojson['geojson']
 
-        # Delete existing indices
+        # Get existing indices
         index_raster_indices = index_raster.indices
-        # for index in index_raster_indices:
-        #     bob = gsshapy_session.query(MTIndex).get(index.id)
-        #     for val in bob.values:
-        #         gsshapy_session.delete(val)
-        #     gsshapy_session.delete(bob)
 
         srid_name = geojson['crs']
 
         project_file_srid = project_file.srid
 
-        id = 100
+        id = 1000
 
         # Loop through each geometry
         for object in geojson_result:
             index_present = False
             object_id = object['id']
-            print object_id
+
+            # Check to see if the index is present
             for index in index_raster_indices:
                 if object_id == index.index:
                     index_present = True
@@ -315,12 +311,11 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
 
             # Change values in the index map
             change_index_values = "SELECT ST_SetValue(raster,1,ST_Transform(ST_GeomFromGeoJSON('{0}'), {1}),{2}) FROM idx_index_maps WHERE id = {3};".format(str(geom_full), project_file_srid, id, index_raster.id)
-
             result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
 
+            # If there is a timeout
             if result == None:
                 print "THE SESSION TIMED OUT"
-
                 messages.error(request, 'The submission timed out. Please try again.')
                 job_session.close()
                 gsshapy_session.close()

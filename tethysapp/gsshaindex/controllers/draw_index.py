@@ -189,6 +189,8 @@ def submit_edits(request, job_id, index_name):
             else:
                 srid = project_file.srid
 
+            print "INDEX RASTER ID: ", index_raster.id
+
             # Change values in the index map
             change_index_values = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
 
