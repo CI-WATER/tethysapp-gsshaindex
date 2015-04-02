@@ -306,12 +306,9 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
             geom['crs'] = srid_name
             geom_full = json.dumps(geom)
 
-            if id == 7:
-                print geom_full
-
             # Change values in the index map
             change_index_values = "SELECT ST_SetValue(raster,1,ST_Transform(ST_GeomFromGeoJSON('{0}'), {1}),{2}) FROM idx_index_maps WHERE id = {3};".format(str(geom_full), project_file_srid, id, index_raster.id)
-            result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
+            result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,index_raster.id), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
 
             # If there is a timeout
             if result == None:

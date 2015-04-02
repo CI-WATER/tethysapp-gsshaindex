@@ -520,10 +520,10 @@ def set_timeout(timeout_wait, default=None, result_can_be_pickled=True):
 		return function_wrapper
 	return decorator
 
-def draw_update_index(statement):
+def draw_update_index(statement, raster_id):
     result = gsshapy_engine.execute(statement)
     for row in result:
-        second_different_statement = "UPDATE idx_index_maps SET raster = '{0}'".format(row[0])
+        second_different_statement = "UPDATE idx_index_maps SET raster = '{0}' WHERE id = {1};".format(row[0], raster_id)
         result2 = gsshapy_engine.execute(second_different_statement)
         result = True
     return result

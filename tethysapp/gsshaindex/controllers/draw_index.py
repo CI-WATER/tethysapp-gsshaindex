@@ -194,7 +194,7 @@ def submit_edits(request, job_id, index_name):
             # Change values in the index map
             change_index_values = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) FROM idx_index_maps WHERE id = {3};".format(wkt, srid, value, index_raster.id)
 
-            result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
+            result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,index_raster.id), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
 
             if result == None:
                 print "THE SESSION TIMED OUT"
