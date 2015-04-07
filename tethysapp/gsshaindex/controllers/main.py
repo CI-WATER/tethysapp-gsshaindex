@@ -383,7 +383,6 @@ def select_index(request, job_id):
     context['map_name'] = map_name
     context['job_id'] = job_id
 
-    # return render(request, 'gsshaindex/namepg.html', context)
     return render(request, 'gsshaindex/select_index.html', context)
 
 
@@ -862,20 +861,9 @@ def get_depth_map(request, job_id, view_type):
 
     return JsonResponse({'kml_links': kml_link})
 
-def secondpg(request, name):
-    """
-    Controller for the app home page.
-    """
-    context = {}
-
-    context['name'] = name
-
-    messages.error(request, 'My Message')
-
-    return render(request, 'gsshaindex/namepg.html', context)
 
 def mapping_table(request):
     context = {}
-    return render(request, 'gsshaindex/namepg.html', context)
+    return render(request, 'gsshaindex/home.html', context)
 
 

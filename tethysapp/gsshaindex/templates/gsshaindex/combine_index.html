@@ -42,13 +42,23 @@
 {% endblock %}
 
 {% block app_actions %}
-  <input type="submit" form="submit_combo" class="btn btn-default" value="Next"/>
+  <input id="next-cover" type="submit" form="submit_combo" class="btn btn-default" value="Next"/>
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script>
+        $("#next-cover").click(function(){
+            $("#coverup").toggleClass("show");
+            $('html, body').css({
+                'overflow': 'hidden',
+                'height': '100%'
+            });
+            document.onkeydown = function (e) {
+                return false;
+            }
+        });
         function changeMap(element, map_name, job_id) {
 			$('.indices').each(function(file_id){
 				$(this).removeClass('active')

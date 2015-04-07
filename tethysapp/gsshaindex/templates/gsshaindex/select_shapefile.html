@@ -31,7 +31,7 @@
                   </div>
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Cancel</button>
-                    <a class="btn btn-primary" name="select_shapefile_files" href="javascript:void(0);" onclick="submit_files()">Upload Files</a>
+                    <a id="next-cover" class="btn btn-primary" name="select_shapefile_files" href="javascript:void(0);" onclick="submit_files()">Upload Files</a>
                   </div>
               </div>
           </div>
@@ -67,4 +67,16 @@
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
     <script src="{% static 'gsshaindex/js/upload_shapefile.js' %}" type="text/javascript"></script>
+    <script>
+        $("#next-cover").click(function(){
+            $("#coverup").toggleClass("show");
+            $('html, body').css({
+                'overflow': 'hidden',
+                'height': '100%'
+            });
+            document.onkeydown = function (e) {
+                return false;
+            }
+        });
+    </script>
 {% endblock %}

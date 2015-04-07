@@ -57,11 +57,23 @@
 {% endblock %}
 
 {% block app_actions %}
-  <input type="submit" form="submit_form" class="btn btn-default" value="Next: Review"/>
+  <input id="next-cover" type="submit" form="submit_form" class="btn btn-default" value="Next: Review"/>
   <a href="{% url 'gsshaindex:edit_index' job_id=job_id index_name=index_name %}" class="btn btn-default">Back: Edit Map and Descriptions</a>
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script>
+        $("#next-cover").click(function(){
+            $("#coverup").toggleClass("show");
+            $('html, body').css({
+                'overflow': 'hidden',
+                'height': '100%'
+            });
+            document.onkeydown = function (e) {
+                return false;
+            }
+        });
+    </script>
 {% endblock %}

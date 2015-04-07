@@ -13,6 +13,7 @@
 {% endblock %}
 
 {% block primary_content %}
+
       {% if model_list|length < 1 %}
       	<h1 class="heading_title">No GSSHA Models</h1>
       {% else %}
@@ -48,13 +49,23 @@
 {% endblock %}
 
 {% block app_actions %}
-  <input type="submit" form="extract_file" class="btn btn-default" value="Next"/>
+  <input id="next-cover" type="submit" form="extract_file" class="btn btn-default" value="Next"/>
 {% endblock %}
 
 {% block scripts %}
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	<script>
+        $("#next-cover").click(function(){
+            $("#coverup").toggleClass("show");
+            $('html, body').css({
+                'overflow': 'hidden',
+                'height': '100%'
+            });
+            document.onkeydown = function (e) {
+                return false;
+            }
+        });
         $("#selector-div").on("change",function(e){
             file_id = e.val;
             $('#file_id').val(file_id);

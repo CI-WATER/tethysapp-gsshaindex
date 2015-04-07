@@ -63,7 +63,7 @@
                   </div>
                   <div class="modal-footer">
                     <button class="btn" data-dismiss="modal" aria-hidden="true">Return to Edit</button>
-                    <button class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
+                    <button id="next-cover" class="btn btn-primary" type="submit" name="submit_for_run">Submit</button>
                   </div>
               </div>
             </div>
@@ -105,6 +105,16 @@
     {{ block.super }}
 	<script type="text/javascript" src="https://www.google.com/jsapi"></script>
 	<script>
+        $("#next-cover").click(function(){
+            $("#coverup").toggleClass("show");
+            $('html, body').css({
+                'overflow': 'hidden',
+                'height': '100%'
+            });
+            document.onkeydown = function (e) {
+                return false;
+            }
+        });
         function changeMap(element, map_name, job_id) {
 			$('.indices').each(function(file_id){
 				$(this).removeClass('active')
