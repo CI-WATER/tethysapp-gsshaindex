@@ -117,8 +117,6 @@ def combine_index(request, job_id, index_name):
                                    order_by(MTIndex.index).\
                                    all()
 
-            print "Indices: ", indices
-
             # Go through the map tables that use the index map
             map_table_count = 0
             for mapping_table in mapTables:
@@ -138,8 +136,6 @@ def combine_index(request, job_id, index_name):
                             index_present = True
                             break
 
-                    print "Large ID ",large_id
-
                     if index_present == False:
                         if str(large_id).endswith("000") == False:
                             second_id = str(large_id).split("0")[-1]
@@ -149,13 +145,10 @@ def combine_index(request, job_id, index_name):
                             second_id = ""
                             description2 = ""
 
-                        print first_id
-
                         pastinfo1 = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
                                 filter(MTIndex.idxMapID == select1_id.id).\
                                 filter(MTIndex.index == first_id).\
                                 all()
-                        print pastinfo1
                         description1 = pastinfo1[0].description1 + " " + pastinfo1[0].description2
 
                         if second_id != "":
@@ -186,10 +179,10 @@ def combine_index(request, job_id, index_name):
                 # Delete indices that aren't present
                 for index in indices:
                     if not int(index[0]) in ids:
-                        bob = gsshapy_session.query(MTIndex).get(index.id)
-                        for val in bob.values:
+                        fetched_index = gsshapy_session.query(MTIndex).get(index.id)
+                        for val in fetched_index.values:
                             gsshapy_session.delete(val)
-                        gsshapy_session.delete(bob)
+                        gsshapy_session.delete(fetched_index)
 
                 new_index.mapTables[map_table_count].numIDs = numberIDs
                 map_table_count +=1
@@ -199,7 +192,6 @@ def combine_index(request, job_id, index_name):
                                    filter(MTValue.mapTable == mapTables[0]).\
                                    order_by(MTIndex.index).\
                                    all()
-
 
             index_raster =  gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == index_name).one()
 
@@ -237,7 +229,6 @@ def combine_index(request, job_id, index_name):
             gsshapy_session.commit()
             job_session.close()
             gsshapy_session.close()
-
 
             return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':'0'}))
 

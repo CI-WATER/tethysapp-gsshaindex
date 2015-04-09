@@ -343,7 +343,7 @@ def select_index(request, job_id):
         elif (params['method'] == "Upload shapefile"):
             # messages.error(request, "Select by polygon is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_name':"None"}))
-        elif (params['method'] == "Merge index maps"):
+        elif (params['method'] == "Merge index maps or replace with another"):
             # messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'index_name':index_name}))
 
@@ -353,11 +353,13 @@ def select_index(request, job_id):
     resource_kmls = json.loads(job.current_kmls)
 
     # Create arrays of the names and urls
-    resource_name = []
+    unsorted_resource_name = []
     resource_url = []
     for key in resource_kmls:
-        resource_name.append(key)
+        unsorted_resource_name.append(key)
         resource_url.append(resource_kmls[key]['url'])
+
+    resource_name = sorted(unsorted_resource_name)
 
     # Set the first index as the active one
     map_name = str(resource_name[0])
