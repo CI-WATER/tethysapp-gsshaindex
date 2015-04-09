@@ -521,11 +521,13 @@ def set_timeout(timeout_wait, default=None, result_can_be_pickled=True):
 	return decorator
 
 def draw_update_index(statement, raster_id):
+    print "Function entered"
     result = gsshapy_engine.execute(statement)
     for row in result:
         second_different_statement = "UPDATE idx_index_maps SET raster = '{0}' WHERE id = {1};".format(row[0], raster_id)
         result2 = gsshapy_engine.execute(second_different_statement)
         result = True
+    print "Function exited"
     return result
 
 def check_workspace(dataset_engine):

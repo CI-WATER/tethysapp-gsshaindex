@@ -66,7 +66,6 @@ def combine_index(request, job_id, index_name):
 
     # if the next button was pressed
     if request.POST:
-        print "Something is happening"
         params = request.POST
         # Error message if both maps selected are the same
         if params['select1'] == params['select2']:
@@ -75,6 +74,8 @@ def combine_index(request, job_id, index_name):
         # Process if only one map is selected
         elif params['select2'] == "none":
             select1_id = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == params['select1']).one()
+            print "ID1: ", select1_id.id
+            print "ID2: ", new_index.id
             statement = '''UPDATE idx_index_maps
                                   Set raster = ST_MapAlgebra(
                                   (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(select1_id.id) +'''), 1,
@@ -83,7 +84,6 @@ def combine_index(request, job_id, index_name):
                                   )
                                 WHERE id = '''+ unicode(new_index.id) +''';
                             '''
-            # result = gsshapy_engine.execute(statement)
             result = gi_lib.timeout(gsshapy_engine.execute, args=(statement,), kwargs={}, timeout=10, result_can_be_pickled=False, default=None)
         # Process if two maps are selected
         else:
@@ -99,7 +99,6 @@ def combine_index(request, job_id, index_name):
                               )
                             WHERE id = '''+ unicode(new_index.id) +''';
                         '''
-            # result = gsshapy_engine.execute(statement)
             result = gi_lib.timeout(gsshapy_engine.execute, args=(statement,), kwargs={}, timeout=10, result_can_be_pickled=False, default=None)
 
         if result != "":
@@ -184,8 +183,6 @@ def combine_index(request, job_id, index_name):
                                 new_value.mapTable = mapping_table
                                 new_value.index = new_indice
 
-                            # gsshapy_session.commit()
-
                 # Delete indices that aren't present
                 for index in indices:
                     if not int(index[0]) in ids:
@@ -193,10 +190,8 @@ def combine_index(request, job_id, index_name):
                         for val in bob.values:
                             gsshapy_session.delete(val)
                         gsshapy_session.delete(bob)
-                # gsshapy_session.commit()
 
                 new_index.mapTables[map_table_count].numIDs = numberIDs
-                # gsshapy_session.commit()
                 map_table_count +=1
 
             indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
@@ -238,7 +233,11 @@ def combine_index(request, job_id, index_name):
                             break
 
             job.current_kmls = json.dumps(temp_list)
-            # job_session.commit()
+            job_session.commit()
+            gsshapy_session.commit()
+            job_session.close()
+            gsshapy_session.close()
+
 
             return redirect(reverse('gsshaindex:mapping_table', kwargs={'job_id':job_id, 'index_name':index_name, 'mapping_table_number':'0'}))
 
