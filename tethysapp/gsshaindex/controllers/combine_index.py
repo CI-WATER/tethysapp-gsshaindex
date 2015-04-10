@@ -25,6 +25,8 @@ def combine_index(request, job_id, index_name):
     context = {}
     user = str(request.user)
 
+    ID_OFFSET = 10
+
     # Get the job from the database
     job_session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user, job_session)
@@ -80,7 +82,7 @@ def combine_index(request, job_id, index_name):
                                   Set raster = ST_MapAlgebra(
                                   (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(select1_id.id) +'''), 1,
                                   (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(new_index.id) +'''), 1,
-                                  '([rast1]*1000 + [rast2]*0)'
+                                  '([rast1]*1000+ [rast2]*0)'
                                   )
                                 WHERE id = '''+ unicode(new_index.id) +''';
                             '''
@@ -108,7 +110,7 @@ def combine_index(request, job_id, index_name):
                             FROM idx_index_maps WHERE id = '''+ unicode(new_index.id) +''') AS foo
                             ORDER BY (pvc).value;
                             '''
-            result3 = gsshapy_engine.execute(statement3)
+            new_indice_values = gsshapy_engine.execute(statement3)
 
             # Get the indices for the index being changed
             indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
@@ -122,11 +124,11 @@ def combine_index(request, job_id, index_name):
             for mapping_table in mapTables:
 
                 # Reset the number of ids to start counting them
-                numberIDs = 0
+                numberIDs = ID_OFFSET
                 ids = []
 
                 # Go through each new id value
-                for row in result3:
+                for row in new_indice_values:
                     index_present = False
                     numberIDs +=1
                     ids.append(row.value)
@@ -158,8 +160,21 @@ def combine_index(request, job_id, index_name):
                                     all()
                             description2 = pastinfo2[0].description1 + " " + pastinfo2[0].description2
 
+                        # Query for the pixel values of row[0] and replace with numberIDs
+                        pixel_query = '''SELECT ST_PixelOfValue((SELECT raster FROM idx_index_maps WHERE id = {0}), {1});'''.format(unicode(new_index.id), row[0])
+                        pixels = gsshapy_session.execute(pixel_query)
+
+                        for pixel in pixels:
+                            coord = pixel[0].strip("()")
+                            x, y = coord.split(",")
+                            update_query = '''UPDATE idx_index_maps
+                                              SET raster = (SELECT ST_SetValue(raster,{1},{2},{3}) FROM idx_index_maps WHERE id = {0})
+                                              WHERE id = {0};'''.format(unicode(new_index.id), int(x), int(y), numberIDs)
+                            new_result = gsshapy_session.execute(update_query)
+
                         # Create new index value
-                        new_indice = MTIndex(row[0], description1, description2)
+                        new_indice = MTIndex(numberIDs, description1, description2)
+                        # new_indice = MTIndex(row[0], description1, description2)
                         new_indice.indexMap = new_index
                         for mapping_table in mapTables:
                             distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
@@ -184,7 +199,7 @@ def combine_index(request, job_id, index_name):
                             gsshapy_session.delete(val)
                         gsshapy_session.delete(fetched_index)
 
-                new_index.mapTables[map_table_count].numIDs = numberIDs
+                new_index.mapTables[map_table_count].numIDs = numberIDs - ID_OFFSET
                 map_table_count +=1
 
             indices = gsshapy_session.query(distinct(MTIndex.index), MTIndex.id, MTIndex.description1, MTIndex.description2).\
