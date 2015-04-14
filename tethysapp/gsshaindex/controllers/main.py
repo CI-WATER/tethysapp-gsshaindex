@@ -546,6 +546,24 @@ def status(request):
 
     return render(request, 'gsshaindex/jobs.html', context)
 
+# def job_status(request, job_id):
+#     context = {}
+#
+#     # Get the user id
+#     user = str(request.user)
+#
+#     # Get the jobs from the database
+#     session = jobs_sessionmaker()
+#     job = session.query(Jobs).\
+#                     filter(Jobs.user_id == user).\
+#                     filter(Jobs.original_id == job_id).one()
+#
+#     if job:
+#         job_status = job.status
+#         json_response = {'status': job_status}
+#
+#     return JsonResponse(json_response)
+
 def fly(request, job_id):
     context = {}
 
@@ -595,7 +613,6 @@ def fly(request, job_id):
 
         if k == 'original' and job.original_certification=="Certified":
             print "The original model is certified"
-            # results.append(url)
             results_urls['original']=url
             count +=1
             continue
@@ -610,10 +627,8 @@ def fly(request, job_id):
             result, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, resultsFile, CKAN_engine, resource_name, "", pretty_date, user, certification="Certified")
 
             job.original_certification = "Certified"
-            # session.commit()
 
             # Publish link to table
-            # results.append(result['url'])
             if k=='original':
                 results_urls['original']=result['url']
             else:
@@ -621,7 +636,6 @@ def fly(request, job_id):
             count +=1
 
     if (count == 2):
-        # results_urls = [results[0], results[1]]
         print results_urls
     else:
         status = 'failed'
