@@ -15,6 +15,7 @@
 {% block primary_content %}
       <h1 class="heading_title">Index Map: {{index_name}}</h1>
       {% gizmo google_map google_map %}
+        <div class="mapping-table">
 		  	<table class="table table-striped">
 		  		<thead>
 		  			<th colspan="1">ID</th>
@@ -40,6 +41,7 @@
                     {% endfor %}
 			  	</form>
 			</table>
+        </div>
 {% endblock %}
 
 {% block secondary_content %}
