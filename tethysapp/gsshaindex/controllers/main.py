@@ -690,24 +690,33 @@ def results(request, job_id, view_type):
     gsshaindexDir = os.path.abspath(os.path.dirname(controllerDir))
     publicDir = os.path.join(gsshaindexDir,'public')
     userDir = os.path.join(publicDir, str(user))
-    newResultsPath = os.path.join(userDir, 'new_results')
-    originalResultsPath = os.path.join(userDir, 'original_results')
+    jobDir = os.path.join(userDir,str(job_id))
+    fakeDir = os.path.join(userDir,'fake')
+    newResultsPath = os.path.join(jobDir, 'new_results')
+    originalResultsPath = os.path.join(jobDir, 'original_results')
 
-    # Clear the results folder
-    gi_lib.clear_folder(userDir)
-    gi_lib.clear_folder(newResultsPath)
-    gi_lib.clear_folder(originalResultsPath)
-
-    # Get the otl files
-    new_otl_file = gi_lib.extract_otl(result_files['new'], newResultsPath)
-    original_otl_file = gi_lib.extract_otl(result_files['original'], originalResultsPath)
+    # Check to see if the otl folder for this job is already downloaded and has values and get a handle on them if it does
+    if os.path.exists(jobDir) and os.listdir(newResultsPath)!=[] and os.listdir(originalResultsPath)!=[]:
+        # Get the otl files
+        new_otl_file = gi_lib.find_otl(newResultsPath)
+        original_otl_file = gi_lib.find_otl(originalResultsPath)
+    # If it doesn't, get the otl files
+    else:
+        # Clear the results folder
+        gi_lib.clear_folder(userDir)
+        gi_lib.clear_folder(jobDir)
+        gi_lib.clear_folder(newResultsPath)
+        gi_lib.clear_folder(originalResultsPath)
+        # Get the otl files
+        new_otl_file = gi_lib.extract_otl(result_files['new'], newResultsPath)
+        original_otl_file = gi_lib.extract_otl(result_files['original'], originalResultsPath)
 
     # Format the values for display with high charts
     new_values = []
     originalValues = []
 
-    new_values = gi_lib.get_otl_values(newResultsPath, new_otl_file, new_values)
-    originalValues = gi_lib.get_otl_values(originalResultsPath, original_otl_file, originalValues)
+    new_values = gi_lib.get_otl_values(new_otl_file, new_values)
+    originalValues = gi_lib.get_otl_values(original_otl_file,  originalValues)
 
     # Set up for high charts hydrograph
     highcharts_object = {
@@ -767,10 +776,12 @@ def results(request, job_id, view_type):
 
     google_map = {'height': '600px',
                     'width': '100%',
-                    'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
+                    'kml_service': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
                     'maps_api_key':maps_api_key}
 
     session.close()
+
+    print '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type
 
     context['hydrograph'] = hydrograph
     context['google_map'] = google_map
@@ -788,6 +799,9 @@ def get_depth_map(request, job_id, view_type):
 
     # Get the user id
     user = str(request.user)
+
+    print "Get depth map"
+    print view_type
 
     # Get the job from the database and delete
     session = jobs_sessionmaker()

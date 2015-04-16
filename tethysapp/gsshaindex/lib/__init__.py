@@ -13,6 +13,7 @@ from datetime import datetime
 from os import path
 from multiprocessing import Process, Queue
 from tethys_apps.sdk import get_spatial_dataset_engine
+import glob
 
 # Get app.ini
 gsshaindex_dir = os.path.abspath(os.path.dirname(os.path.dirname(__file__)))
@@ -230,26 +231,37 @@ def extract_otl (url, extract_path):
     '''
     This function finds the otl file from the zip file at the url and extracts it to a specified location
     url = location of the zipped GSSHA file
-    extract_path = where the mask file should be extracted to
+    extract_path = where the otl file should be extracted to
     '''
-    # Find zip file at the url and find the mask file
+    # Find zip file at the url and find the otl file
     zip_file = urllib2.urlopen(url)
     zf = zipfile.ZipFile(StringIO.StringIO(zip_file.read()))
     for file in zf.namelist():
         if file.endswith('.otl'):
             otl_file=file
 
-    # Extract the mask file
+    # Extract the otl file
     zf.extract(otl_file, extract_path)
 
-    return otl_file
+    otl_fileDir = os.path.join(extract_path, otl_file)
 
-def get_otl_values(file_path, otl_file, value_array):
+    return otl_fileDir
+
+def find_otl (otl_path):
+    '''
+    otl_path = where the otl file is
+    '''
+    # Find the otl file
+    otl_file = glob.glob(otl_path+"/*.otl")
+    file_path = otl_file[0]
+    return file_path
+
+def get_otl_values(file_path, value_array):
     '''
     This takes an otl file location and an empty array and fills the array with the values from the otl file
     '''
-    newFileDir = os.path.join(file_path, otl_file)
-    with open(newFileDir, 'r') as f:
+    # newFileDir = os.path.join(file_path, otl_file)
+    with open(file_path, 'r') as f:
         values = [row.strip().split('   ') for row in f]
     for thing in values:
         formatted_value = []
@@ -283,6 +295,8 @@ def append_shapefile_CKAN(dataset, CKAN_engine, zip_file_path, name, description
     return result['result'], result['success']
 
 def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
+
+    print "Preparing time depth map"
 
     # Clear the results folder
     clear_folder(depthMapDir)
@@ -328,6 +342,8 @@ def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
 
 def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
 
+    print "Preparing max depth map"
+
     # Clear the results folder
     clear_folder(depthMapDir)
 
@@ -358,16 +374,16 @@ def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
                       projectFileName=project_name,
                       session=gsshapy_session,
                       spatial=True)
-
+    print project_file.id
     # Create a kml using the depth map
-    try:
-        depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
-        depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+    # try:
+    depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+    depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
 
-        depth_raster = check_dataset("depth-maps", CKAN_engine)
-        result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
-    except:
-        result={'url':""}
+    depth_raster = check_dataset("depth-maps", CKAN_engine)
+    result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
+    # except:
+    #     result={'url':""}
 
     return result
 
