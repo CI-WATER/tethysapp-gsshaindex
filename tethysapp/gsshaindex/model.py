@@ -7,11 +7,6 @@ import os, collections, ConfigParser
 
 from .utilities import get_persistent_store_engine
 
-# DB Engine, sessionmaker, and base
-engine = get_persistent_store_engine('primary')
-SessionMaker = sessionmaker(bind=engine)
-Base = declarative_base()
-
 # Create DB Engine, SessionMaker, and Base for jobs DB
 Engine = get_persistent_store_engine("gsshaidx_db")
 jobs_sessionmaker = sessionmaker(bind=Engine)
@@ -20,22 +15,6 @@ Base = declarative_base()
 # Create DB gsshapy_engine and sessionmaker for Main DB
 gsshapy_engine = get_persistent_store_engine("gsshapy_db")
 gsshapy_sessionmaker = sessionmaker(bind=gsshapy_engine)
-
-# Create DB shapefile_engine and sessionmaker for Shapefile DB
-shapefile_engine = get_persistent_store_engine("shapefile_db")
-shapefile_sessionmaker = sessionmaker(bind=shapefile_engine)
-
-class StreamGage(Base):
-    """
-    Example SQLAlchemy model
-    """
-    __tablename__ = 'stream_gages'
-
-    # Columns
-    id = Column(Integer, primary_key=True)
-    name = Column(String)
-    lat = Column(Float)
-    lon = Column(Float)
 
 
 class Jobs(Base):

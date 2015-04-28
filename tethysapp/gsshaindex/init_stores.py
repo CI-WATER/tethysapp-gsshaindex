@@ -1,40 +1,10 @@
-from .model import engine, SessionMaker, StreamGage, Base, Engine, Base, gsshapy_engine, shapefile_engine
+from .model import Base, Engine, gsshapy_engine
 from gsshapy.orm import metadata as gsshapy_metadata
-
-
-def init_primary(first_time):
-    """
-    An example persistent store initializer function
-    """
-
-    # Create tables
-    Base.metadata.create_all(engine)
-
-    # First time add data
-    if first_time:
-        # Make a session
-        session = SessionMaker()
-
-        # Create StreamGage objects
-        provo = StreamGage(name='Provo River Near Provo', lat=40.23833, lon=-111.6975)
-        woodland = StreamGage(name='Lower River Near Woodland', lat=40.557778, lon=-111.181111)
-
-        # Add to the session and commit
-        session.add(provo)
-        session.add(woodland)
-        session.commit()
-
 
 def init_gsshaidx_db(first_time):
     #Create tables
     Base.metadata.create_all(Engine)
 
-
 def init_gsshapy_db(first_time):
     #Create tables
     gsshapy_metadata.create_all(gsshapy_engine)
-
-
-def init_shapefile_db(first_time):
-    #Create tables
-    gsshapy_metadata.create_all(shapefile_engine)

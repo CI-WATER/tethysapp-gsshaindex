@@ -109,17 +109,11 @@ class GSSHAIndex(TethysAppBase):
         """
         Add persistent stores
         """
-        stores = (PersistentStore(name='primary',
-                                  initializer='init_stores:init_primary',
-                                  postgis=True
-                  ),PersistentStore(name='gsshaidx_db',
+        stores = (PersistentStore(name='gsshaidx_db',
                                   initializer='init_stores:init_gsshaidx_db',
                                   postgis=True
                   ),PersistentStore(name='gsshapy_db',
                                   initializer='init_stores:init_gsshapy_db',
-                                  postgis=True
-                  ),PersistentStore(name='shapefile_db',
-                                  initializer='init_stores:init_shapefile_db',
                                   postgis=True
                   ),
         )
