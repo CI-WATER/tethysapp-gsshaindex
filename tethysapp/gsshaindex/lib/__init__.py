@@ -216,11 +216,19 @@ def flyGssha(link,resultsFile):
     processid = 'rungssha'
     inputs = [('url', link)]
 
+    print "1"
+
     output = "outputfile"
+
+    print "2"
 
     execution = wps.execute(processid, inputs, output)
 
+    print "3"
+
     monitorExecution(execution)
+
+    print "Pre-execution"
 
     result = execution.getOutput(resultsFile)
 
@@ -331,7 +339,7 @@ def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
     try:
         # Create a kml using the depth map
         depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "dep").one()
-        depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+        depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.75, cellSize=10)
 
         depth_raster = check_dataset("depth-maps", CKAN_engine)
         result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
@@ -378,7 +386,7 @@ def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
     # Create a kml using the depth map
     # try:
     depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
-    depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+    depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.75, cellSize=10)
 
     depth_raster = check_dataset("depth-maps", CKAN_engine)
     result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
@@ -439,7 +447,7 @@ def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, n
         new_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == new_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
         original_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == original_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
 
-        # depth_map_raster.getAsKmlGridAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5)
+        # depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5, cellSize=10)
 
         # depth_raster = check_dataset("depth-maps", CKAN_engine)
         # result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)

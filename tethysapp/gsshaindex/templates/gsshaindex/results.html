@@ -29,12 +29,9 @@
 			<li class="dropdown-header">{{original_name}}</li>
 			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='originalMax'%}">Max Depth</a></li>
 			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='originalTime'%}">Time Series</a></li>
-			<li class="dropdown-header">{{new_name}} vs {{original_name}}</li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='bothMax'%}">Max Depth</a></li>
-			<li role="presentation"><a role="menuitem" tabindex="-1" href="{% url 'gsshaindex:results' job_id=job_id view_type='bothTime'%}">Time Series</a></li>
 		</ul>
 	</div>
-	{% gizmo google_map google_map %}
+	{% gizmo google_map_view google_map %}
 
 	<p style="padding-top:40px" align="center">Click on the files below if you'd like to download the results.</p>
 	<div style="padding-bottom:5px" align="center">

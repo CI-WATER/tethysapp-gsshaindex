@@ -49,8 +49,6 @@ class Jobs(Base):
     originalTime = Column(String)
     newMax = Column(String)
     newTime = Column(String)
-    bothMax = Column(String)
-    bothTime = Column(String)
 
     def __init__(self, name, user_id, original_description, original_id, original_url, original_certification):
 

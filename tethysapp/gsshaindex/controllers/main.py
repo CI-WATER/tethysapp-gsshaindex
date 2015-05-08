@@ -115,7 +115,6 @@ def get_mask_map(request, file_id):
     has the key 'kml_links'.
     """
     kml_links = []
-
     session = jobs_sessionmaker()
     user = str(request.user)
     job, success = gi_lib.get_new_job(file_id, user,session)
@@ -123,7 +122,6 @@ def get_mask_map(request, file_id):
     print job.kml_url
 
     if job.kml_url != None:
-        print "A MASK MAP EXISTS"
         kml_links.append(job.kml_url)
         #TODO Need some way to check and see if the link works or if it's broken
         return JsonResponse({'kml_links': kml_links})
@@ -146,7 +144,6 @@ def get_mask_map(request, file_id):
         extractPath = os.path.join(maskMapDir, file_id)
         mask_file = gi_lib.extract_mask(url, extractPath)
         if mask_file == "blank":
-            print "Mask File Didn't Exist"
             job.kml_url = ''
             session.commit()
             return JsonResponse({'kml_links': ''})
@@ -169,15 +166,12 @@ def get_mask_map(request, file_id):
             if projection_file != "blank":
                 srid = ProjectionFile.lookupSpatialReferenceID(extractPath, projection_file)
             else:
-                print("There is no projection file, so default is being used")
                 srid = 4302
             mask_map = RasterMapFile()
             mask_map.read(directory=extractPath, filename=mask_file, session=gsshapy_session, spatial=True, spatialReferenceID=srid)
             mask_map.getAsKmlClusters(session=gsshapy_session, path=kml_file, colorRamp={'colors':color, 'interpolatedPoints':1})
 
             mask_map_dataset = gi_lib.check_dataset("mask-maps", CKAN_engine)
-
-            # mask_map_dataset = mask_map_dataset['result']['results'][0]['id']
 
             # Add mask kml to CKAN for viewing
             resource, success = gi_lib.add_kml_CKAN(mask_map_dataset, CKAN_engine, kml_file, kml_name)
@@ -451,7 +445,7 @@ def zip_file(request, job_id):
 
     # Set depth map
     if projectFileAll.getCard("FLOOD_GRID") == None:
-        max_depth_card = ProjectCard("FLOOD_GRID", '"{0}.gfl"'.format(project_name[:-4]))
+        max_depth_card = ProjectCard("FLOOD_GRID", '"{0}.gfl"'.format(new_name))
         project_cards = projectFileAll.projectCards.append(max_depth_card)
         gsshapy_session.commit()
         job.original_certification = "Missing gfl"
@@ -463,9 +457,10 @@ def zip_file(request, job_id):
     userDir = os.path.join(publicDir, str(user))
     newFileDir = os.path.join(userDir, 'newFile')
     writeFile = os.path.join(newFileDir, new_name)
-    zipPath = os.path.join(newFileDir, '.'.join((new_name,'zip')))
+    zipPath = os.path.join(newFileDir, new_name + "_zip")
 
     # Clear workspace folders
+    gi_lib.clear_folder(userDir)
     gi_lib.clear_folder(newFileDir)
     gi_lib.clear_folder(writeFile)
 
@@ -592,7 +587,10 @@ def fly(request, job_id):
     gsshapy_session = gsshapy_sessionmaker()
 
     # Clear the results folder
+    gi_lib.clear_folder(userDir)
     gi_lib.clear_folder(resultsPath)
+    gi_lib.clear_folder(originalFileRunPath)
+    gi_lib.clear_folder(writeFile)
 
     # Get the jobs from the database
     session = jobs_sessionmaker()
@@ -625,7 +623,6 @@ def fly(request, job_id):
         print "URL: ", url
 
         if k == 'original' and job.original_certification=="Certified":
-            print "The original model is certified"
             results_urls['original']=url
             count +=1
             continue
@@ -635,12 +632,19 @@ def fly(request, job_id):
 
             downloaded_project = gi_lib.extract_zip_from_url(user, url, originalFileRunPath)
             # Create an empty Project File Object
-            project_name = job.original_name +"_with_gfl"
+            # Find the project file
+            for root, dirs, files in os.walk(originalFileRunPath):
+                for file in files:
+                    if file.endswith(".prj"):
+                        project_name = file
+                        print project_name
+                        project_path = os.path.join(root, file)
+                        read_dir = os.path.dirname(project_path)
             project = ProjectFile()
-            project.readInput(directory=originalFileRunPath,
-                              projectFileName= project_name,
-                              session = gsshapy_session,
-                              spatial=True)
+            project.readInput(directory=read_dir,
+                      projectFileName=project_name,
+                      session = gsshapy_session,
+                      spatial=True)
 
             if project.getCard("FLOOD_GRID") == None:
                 max_depth_card = ProjectCard("FLOOD_GRID", '"{0}.gfl"'.format(project_name[:-4]))
@@ -649,7 +653,7 @@ def fly(request, job_id):
 
             # Need to format so that it will work for the file I just did
             # Get all the project files
-            project.writeInput(session=gsshapy_session, directory=writeFile, name=project_name)
+            project.writeInput(session=gsshapy_session, directory=writeFile, name=project_name[:-4])
 
             # Make a list of the project files
             writeFile_list = os.listdir(writeFile)
@@ -658,7 +662,7 @@ def fly(request, job_id):
             with zipfile.ZipFile(zipPath, "w") as gssha_zip:
                 for item in writeFile_list:
                     abs_path = os.path.join(writeFile, item)
-                    archive_path = os.path.join(new_name, item)
+                    archive_path = os.path.join(project_name, item)
                     gssha_zip.write(abs_path, archive_path)
 
             GSSHA_dataset = gi_lib.check_dataset("gssha-models", CKAN_engine)
@@ -667,14 +671,15 @@ def fly(request, job_id):
             pretty_date= time.strftime("%A %B %d, %Y %I:%M:%S %p")
 
             # Add the zipped GSSHA file to the public ckan
-            results, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, zipPath, CKAN_engine, project_name, description, pretty_date, user)
+            results, success = gi_lib.add_zip_GSSHA(GSSHA_dataset, zipPath, CKAN_engine, project_name[:-4] + " with gfl", description, pretty_date, user)
 
             job.original_url = results['url']
 
             url = job.original_url
 
             resultsFile = os.path.join(resultsPath, arguments[k]['name'].replace(" ","_")+datetime.now().strftime('%Y%d%m%H%M%S'))
-            gi_lib.flyGssha(url, resultsFile)
+
+            gi_lib.flyGssha(str(url), resultsFile)
 
             # Push file to ckan dataset
             resource_name = ' '.join((arguments[k]['name'], '-Run',datetime.now().strftime('%b %d %y %H:%M:%S')))
@@ -689,7 +694,6 @@ def fly(request, job_id):
             results_urls['original']=result['url']
             count +=1
         else:
-            print "The model is not certified"
             resultsFile = os.path.join(resultsPath, arguments[k]['name'].replace(" ","_")+datetime.now().strftime('%Y%d%m%H%M%S'))
             gi_lib.flyGssha(url, resultsFile)
 
@@ -849,12 +853,13 @@ def results(request, job_id, view_type):
 
     google_map = {'height': '600px',
                     'width': '100%',
-                    'kml_service': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type,
-                    'maps_api_key':maps_api_key}
+                    'reference_kml_action': '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type}
 
     session.close()
 
     print '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type
+
+
 
     context['hydrograph'] = hydrograph
     context['google_map'] = google_map
@@ -896,7 +901,7 @@ def get_depth_map(request, job_id, view_type):
     kml_link = []
 
     if view_type == "newTime":
-        if job.newTime != None:
+        if job.newTime:
             kml_link.append(job.newTime)
         else:
             result_url = job.result_urls['new']
@@ -906,7 +911,7 @@ def get_depth_map(request, job_id, view_type):
             kml_link.append(result['url'])
 
     elif view_type == "newMax":
-        if job.newMax != None:
+        if job.newMax:
             kml_link.append(job.newMax)
         else:
             result_url = job.result_urls['new']
@@ -916,7 +921,7 @@ def get_depth_map(request, job_id, view_type):
             kml_link.append(result['url'])
 
     elif view_type == "originalTime":
-        if job.originalTime != None:
+        if job.originalTime:
             kml_link.append(job.originalTime)
         else:
             result_url = job.result_urls['original']
@@ -926,7 +931,7 @@ def get_depth_map(request, job_id, view_type):
             kml_link.append(result['url'])
 
     elif view_type == "originalMax":
-        if job.originalMax != None:
+        if job.originalMax:
             kml_link.append(job.originalMax)
         else:
             result_url = job.result_urls['original']
@@ -935,30 +940,8 @@ def get_depth_map(request, job_id, view_type):
             session.commit()
             kml_link.append(result['url'])
 
-    elif view_type == "bothTime":
-        if job.bothTime != None:
-            kml_link.append(job.bothTime)
-        else:
-            new_result_url = job.result_urls['new']
-            original_result_url = job.result_urls['original']
-            result = gi_lib.prepare_both_time_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine)
-            job.bothTime = result['url']
-            session.commit()
-            kml_link.append(result['url'])
-
-    elif view_type== "bothMax":
-        if job.bothMax != None:
-            kml_link.append(job.bothMax)
-        else:
-            result_url = job.result_urls['new']
-            original_result_url = job.result_urls['original']
-            result = gi_lib.prepare_both_max_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine)
-            job.bothMax = result['url']
-            session.commit()
-            kml_link.append(result['url'])
-
     else:
-        kml_link=""
+        kml_link=kml_link.append("")
 
     session.close()
 
