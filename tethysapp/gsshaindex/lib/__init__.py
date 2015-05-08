@@ -42,8 +42,6 @@ def check_package(name, engine):
         if name not in package_list:
             engine.create_dataset(name)
             present = False
-    else:
-        print(result['error'])
 
     return present
 
@@ -62,17 +60,6 @@ def get_new_job(job_id, user_id, session):
         job = ""
         return job, success
 
-# def create_duplicate_job(job_id, user_id, session):
-#     # Get the job and project file id from the database and duplicate
-#
-#     original_job = session.query(Jobs).\
-#                 filter(Jobs.user_id == user_id).\
-#                 filter(Jobs.original_id == job_id).\
-#                 filter(Jobs.status == "new").one()
-#
-#     new_job = Jobs(name=original_job.original_name, user_id=user_id, original_description=original_job.original_description, original_id=job_id, original_url=original_job.original_url, original_certification=original_job.original_certification)
-#
-#     return new_job
 
 def get_pending_job(job_id, user_id, session):
     # Get the job and project file id from the database
@@ -215,17 +202,8 @@ def flyGssha(link,resultsFile):
 
     processid = 'rungssha'
     inputs = [('url', link)]
-
-    print "1"
-
     output = "outputfile"
-
-    print "2"
-
     execution = wps.execute(processid, inputs, output)
-
-    print "3"
-
     monitorExecution(execution)
 
     print "Pre-execution"
@@ -303,8 +281,7 @@ def append_shapefile_CKAN(dataset, CKAN_engine, zip_file_path, name, description
     return result['result'], result['success']
 
 def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
-
-    print "Preparing time depth map"
+    '''This code prepares the time depth maps and stores them in CKAN'''
 
     # Clear the results folder
     clear_folder(depthMapDir)
@@ -349,8 +326,7 @@ def prepare_time_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
     return result
 
 def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
-
-    print "Preparing max depth map"
+    '''This code prepares the max depth map and stores it in CKAN'''
 
     # Clear the results folder
     clear_folder(depthMapDir)
@@ -382,79 +358,18 @@ def prepare_max_depth_map(user, result_url, job, depthMapDir, CKAN_engine):
                       projectFileName=project_name,
                       session=gsshapy_session,
                       spatial=True)
-    print project_file.id
-    # Create a kml using the depth map
-    # try:
-    depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
-    depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.75, cellSize=10)
-
-    depth_raster = check_dataset("depth-maps", CKAN_engine)
-    result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
-    # except:
-    #     result={'url':""}
-
-    return result
-
-def prepare_both_max_depth_map(user, new_result_url, original_result_url, job, newDepthDir, originalDepthDir, CKAN_engine):
-
-    # Clear the results folder
-    clear_folder(depthMapDir)
-
-    # Create gsshapy_session
-    gsshapy_session = gsshapy_sessionmaker()
-
-    # Get project file id
-    project_file_id = job.new_model_id
-
-    # Extract the GSSHA file
-    extract_path, unique_dir = extract_zip_from_url(user, result_url, depthMapDir)
-
-    # Find the project file
-    for root, dirs, files in os.walk(newDepthMapDir):
-        for file in files:
-            if file.endswith(".prj"):
-                new_project_name = file
-                new_project_path = os.path.join(root, file)
-                new_read_dir = os.path.dirname(project_path)
-                new_depth_file = project_path[:-3]+"kmz"
-
-    # Find the project file
-    for root, dirs, files in os.walk(originalDepthMapDir):
-        for file in files:
-            if file.endswith(".prj"):
-                original_project_name = file
-                original_project_path = os.path.join(root, file)
-                original_read_dir = os.path.dirname(project_path)
-                original_depth_file = project_path[:-3]+"kmz"
-
-    # Create an empty Project File Object
-    new_project_file = ProjectFile()
-    original_project_file = ProjectFile()
-
-    # Invoke the read command on the Project File Object to get the output files in the database
-    new_project_file.readOutput(directory=new_read_dir,
-                      projectFileName=new_project_name,
-                      session=gsshapy_session,
-                      spatial=True)
-
-    original_project_file.readOutput(directory=original_read_dir,
-                      projectFileName=original_project_name,
-                      session=gsshapy_session,
-                      spatial=True)
-
     # Create a kml using the depth map
     try:
-        new_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == new_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
-        original_depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == original_project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+        depth_map_raster =  gsshapy_session.query(WMSDatasetFile).filter(WMSDatasetFile.projectFileID == project_file.id).filter(WMSDatasetFile.fileExtension == "gfl").one()
+        depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_AQUA, alpha=0.75, cellSize=10)
 
-        # depth_map_raster.getAsKmlPngAnimation(session=gsshapy_session, projectFile=project_file, path=depth_file,colorRamp = ColorRampEnum.COLOR_RAMP_HUE, alpha=0.5, cellSize=10)
-
-        # depth_raster = check_dataset("depth-maps", CKAN_engine)
-        # result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
+        depth_raster = check_dataset("depth-maps", CKAN_engine)
+        result, status = add_depth_map_CKAN(depth_raster, CKAN_engine, depth_file, resource_name)
     except:
         result={'url':""}
 
     return result
+
 
 
 def timeout(func, args=(), kwargs={}, timeout=1, default=None, result_can_be_pickled=True):
@@ -545,13 +460,11 @@ def set_timeout(timeout_wait, default=None, result_can_be_pickled=True):
 	return decorator
 
 def draw_update_index(statement, raster_id):
-    print "Function entered"
     result = gsshapy_engine.execute(statement)
     for row in result:
         second_different_statement = "UPDATE idx_index_maps SET raster = '{0}' WHERE id = {1};".format(row[0], raster_id)
         result2 = gsshapy_engine.execute(second_different_statement)
         result = True
-    print "Function exited"
     return result
 
 def check_workspace(dataset_engine):
@@ -560,10 +473,8 @@ def check_workspace(dataset_engine):
 
     if workspace['success'] == False:
         workspace = dataset_engine.create_workspace('gsshaindex','http://host/apps/gsshaindex')
-        print "Workspace created"
     else:
         pass
-        print "Workspace already exists"
 
     return workspace
 
@@ -572,7 +483,6 @@ def delete_layer(dataset_engine, user):
     result = dataset_engine.get_layer(layer_id='gsshaindex:' + user)
     if result['success'] == True:
         layer = dataset_engine.delete_layer(layer_id='gsshaindex:' + user)
-        print "Layer deleted"
     else:
         pass
     return result
@@ -582,7 +492,6 @@ def delete_resource(dataset_engine, user):
     result = dataset_engine.get_resource(resource_id='gsshaindex:' + user)
     if result['success'] == True:
         resource = dataset_engine.delete_resource(resource_id='gsshaindex:' + user)
-        print "Resource deleted"
     else:
         pass
     return result

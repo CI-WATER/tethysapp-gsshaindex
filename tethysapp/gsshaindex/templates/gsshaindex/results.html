@@ -15,7 +15,8 @@
 {% block app_content %}
 	<h1>Results</h1>
 	{% gizmo highcharts_plot_view hydrograph %}
-	<h1>Depth Map</h1>
+	<h1>Depth Map: {{ map_title }}</h1>
+    <p><a href={{ kml_link }}>Link to the file being Viewed</a><i> Note: Time series can only be viewed in Google Earth</i></p>
 	<p>Select which depth map you'd like to view</p>
 	<div class="dropdown" style="padding-bottom:15px">
 	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">
@@ -33,13 +34,14 @@
 	</div>
 	{% gizmo google_map_view google_map %}
 
-	<p style="padding-top:40px" align="center">Click on the files below if you'd like to download the results.</p>
+	<p style="padding-top:20px" align="center">Click on the files below if you'd like to download a .zip file of the results.</p>
 	<div style="padding-bottom:5px" align="center">
 		<a href={{ original_file }}>{{ original_name }}</a>
 	</div>
 	<div style="padding-top:5px; padding-bottom:40px" align="center">
 		<a href={{ new_file }}>{{ new_name }}</a>
 	</div>
+
 {% endblock %}
 
 

@@ -76,8 +76,6 @@ def combine_index(request, job_id, index_name):
         # Process if only one map is selected
         elif params['select2'] == "none":
             select1_id = gsshapy_session.query(IndexMap).filter(IndexMap.mapTableFile == project_file.mapTableFile).filter(IndexMap.name == params['select1']).one()
-            print "ID1: ", select1_id.id
-            print "ID2: ", new_index.id
             statement = '''UPDATE idx_index_maps
                                   Set raster = ST_MapAlgebra(
                                   (SELECT raster FROM idx_index_maps WHERE id = '''+ unicode(select1_id.id) +'''), 1,

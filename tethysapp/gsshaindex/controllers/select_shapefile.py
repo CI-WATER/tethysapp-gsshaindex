@@ -83,8 +83,6 @@ def shapefile_index(request, job_id, index_name, shapefile_name):
                              'maxZoom': 18, 'minZoom': 3},
                     'base_map': 'OpenStreetMap'
   }
-        print map_view
-        pprint.pprint(map_view)
 
     else:
         map_view = {'height': '400px',
@@ -185,7 +183,6 @@ def shapefile_upload(request, job_id, index_name):
 
     # Clear the store and create a new feature resource
     # store = gi_lib.clear_store(dataset_engine, user)
-    print "FEATURE RESOURCE"
     feature_resource = dataset_engine.create_shapefile_resource(store_id='gsshaindex:'+user+'-'+shp_name, shapefile_upload=files, overwrite=True, debug=True)
 
 
@@ -204,8 +201,6 @@ def get_geojson_from_geoserver(user, shapefile_name):
     # Find the contents of GeoServer for the user and display them
     dataset_engine = get_spatial_dataset_engine(name='gsshaindex_geoserver', app_class=GSSHAIndex)
     overlay_result = gi_lib.get_layer_and_resource(dataset_engine, user, shapefile_name)
-
-    print overlay_result['resource']['wfs']['geojson']
 
     if overlay_result['success'] == True:
         url = overlay_result['resource']['wfs']['geojson']
@@ -257,9 +252,7 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
 
     mapTables = index_raster.mapTables
 
-    if geojson['success'] == False:
-        print "PANIC"
-    else:
+    if geojson['success'] != False:
         geojson_result = geojson['geojson']
 
         # Get existing indices
@@ -296,7 +289,6 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
                         variables.append(var[0])
 
                     for variable in variables:
-                        print variable
                         new_value = MTValue(variable, 0)
                         new_value.mapTable = mapping_table
                         new_value.index = new_indice
@@ -314,7 +306,6 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
 
             # If there is a timeout
             if result == None:
-                print "THE SESSION TIMED OUT"
                 messages.error(request, 'The submission timed out. Please try again.')
                 job_session.close()
                 gsshapy_session.close()
@@ -322,9 +313,6 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
                 context['job_id'] = job_id
 
                 return redirect(reverse('gsshaindex:shapefile_index', kwargs={'job_id':job_id, 'index_name':index_name, 'shapefile_name':shapefile_name}))
-
-            else:
-                print "THE SUBMISSION WORKED!!!!!!"
 
             id += 1
 
@@ -341,7 +329,6 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
         for row in result3:
             numberIDs +=1
             ids.append(row.value)
-            print ids
 
         map_table_count = 0
         for mapping_table in mapTables:
@@ -353,8 +340,6 @@ def replace_index_with_shapefile(request, job_id, index_name, shapefile_name):
                                    filter(MTValue.mapTable == mapping_table).\
                                    order_by(MTIndex.index).\
                                    all()
-
-            print "INDICES", indices
 
             for index in indices:
                 if not int(index[0]) in ids:

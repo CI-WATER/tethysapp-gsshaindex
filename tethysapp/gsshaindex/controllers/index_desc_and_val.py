@@ -39,8 +39,6 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
     indices = index_raster.indices
     mapTables = index_raster.mapTables
 
-    print "INDICES", indices
-
     mapping_table_number = int(mapping_table_number)
 
     # Process for if descriptions are submitted
@@ -79,16 +77,11 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
         arrayMapTables.append([clean, table.name, count])
         count +=1
 
-    print mapTables
-    print arrayMapTables
-
     # Find the variables that are related to the active map table
     distinct_vars = gsshapy_session.query(distinct(MTValue.variable)).\
                                  filter(MTValue.mapTable == mapTables[mapping_table_number]).\
                                  order_by(MTValue.variable).\
                                  all()
-
-    print "DISTINCT", distinct_vars
 
     # Create an array of the variables in the active map table
     variables = []
@@ -102,8 +95,6 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                            filter(MTValue.mapTable == mapTables[mapping_table_number]).\
                            order_by(MTIndex.index).\
                            all()
-
-    print "INDICES", indices
 
     # Get all the values to populate the table
     var_values = []
@@ -122,11 +113,6 @@ def mapping_table(request, job_id, index_name, mapping_table_number):
                       'width': '100%',
                       'kml_service': '/apps/gsshaindex/' + job_id + '/get-index-maps/' + index_name,
                       'maps_api_key':maps_api_key}
-
-    print "VARS",  variables
-    print "VALUES", var_values
-
-    print "INDICES", indices
 
     context['indices'] = indices
     context['job_id'] = job_id

@@ -142,7 +142,6 @@ def submit_edits(request, job_id, index_name):
 
     # If some geometry is submitted, go and run the necessary steps to change the map
     if params['geometry']:
-        print "Geometry submitted"
         jsonGeom = json.loads(params['geometry'])
         geometries= jsonGeom['geometries']
 
@@ -152,18 +151,14 @@ def submit_edits(request, job_id, index_name):
 
             # Get the values for the geometry
             value = geometry['properties']['value']
-            # print "WKT: ", value
 
             # Loop through indices and see if they match
             index_raster_indices = index_raster.indices
             index_present = False
             for index in index_raster_indices:
-                # print index
                 if int(index.index) == int(value):
                     index_present = True
                     break
-
-            print "Index Present? ", index_present
 
             # Create new index value if it doesn't exist and change the number of ids
             if index_present == False:
@@ -189,8 +184,6 @@ def submit_edits(request, job_id, index_name):
             else:
                 srid = project_file.srid
 
-            print "INDEX RASTER ID: ", index_raster.id
-
             # Change values in the index map
             change_index_values = "SELECT ST_SetValue(raster,1, ST_Transform(ST_GeomFromText('{0}', 4326),{1}),{2}) " \
                                   "FROM idx_index_maps " \
@@ -199,7 +192,6 @@ def submit_edits(request, job_id, index_name):
             result = gi_lib.timeout(gi_lib.draw_update_index, args=(change_index_values,index_raster.id), kwargs={}, timeout=10, result_can_be_pickled=True, default=None)
 
             if result == None:
-                print "THE SESSION TIMED OUT"
 
                 messages.error(request, 'The submission timed out. Please try to draw in the changes and submit them again.')
                 job_session.close()
@@ -208,9 +200,6 @@ def submit_edits(request, job_id, index_name):
                 context['job_id'] = job_id
 
                 return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
-
-            else:
-                print "THE SUBMISSION WORKED!!!!!!"
 
         # Get the values in the index map
         statement3 = '''SELECT (pvc).*

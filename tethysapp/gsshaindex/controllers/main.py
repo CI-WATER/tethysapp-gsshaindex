@@ -81,7 +81,6 @@ def home(request):
     if no_files == False:
         # Display a google map with the first kml
         first_file_id = model_list[0][1]
-        print "FIRST FILE ID: ", first_file_id
 
         google_map = {'height': '500px',
                         'width': '100%',
@@ -118,8 +117,6 @@ def get_mask_map(request, file_id):
     session = jobs_sessionmaker()
     user = str(request.user)
     job, success = gi_lib.get_new_job(file_id, user,session)
-
-    print job.kml_url
 
     if job.kml_url != None:
         kml_links.append(job.kml_url)
@@ -329,9 +326,7 @@ def select_index(request, job_id):
     # Give options for editing the index map
     if ('select_index' in request.POST):
         params = request.POST
-        print params
         index_name = params['index_name']
-        print index_name
         if (params['method'] == "Create polygons"):
             return redirect(reverse('gsshaindex:edit_index', kwargs={'job_id':job_id, 'index_name':index_name}))
         elif (params['method'] == "Upload shapefile"):
@@ -340,8 +335,6 @@ def select_index(request, job_id):
         elif (params['method'] == "Merge index maps or replace with another"):
             # messages.error(request, "Merging index maps is currently in production and hasn't been initialized yet.")
             return redirect(reverse('gsshaindex:combine_index', kwargs={'job_id':job_id, 'index_name':index_name}))
-
-    print "CERTIFICATION", job.original_certification
 
     # Get list of index files
     resource_kmls = json.loads(job.current_kmls)
@@ -399,8 +392,6 @@ def get_index_maps(request, job_id, index_name):
 
     # Get the kml url
     kml_links = resource_list[map_name]['url']
-
-    print kml_links
 
     return JsonResponse({'kml_links': [kml_links]})
 
@@ -488,9 +479,6 @@ def zip_file(request, job_id):
         new_name = results['name']
         original_url = job.original_url
         original_name = job.original_name
-
-    print "Original URL", original_url
-    print "New URL", new_url
 
     model_data = {'original': {'url':original_url, 'name':original_name}, 'new':{'url':new_url, 'name':new_name}}
     job.run_urls = model_data
@@ -620,7 +608,6 @@ def fly(request, job_id):
     # try:
     for k in arguments:
         url = str(arguments[k]['url'])
-        print "URL: ", url
 
         if k == 'original' and job.original_certification=="Certified":
             results_urls['original']=url
@@ -628,8 +615,6 @@ def fly(request, job_id):
             continue
         elif k == 'original' and job.original_certification=="Missing gfl":
             # Need to download from url, add gfl, zip, send to ckan, run, and save the url
-            print "The model is not certified and gfl missing"
-
             downloaded_project = gi_lib.extract_zip_from_url(user, url, originalFileRunPath)
             # Create an empty Project File Object
             # Find the project file
@@ -637,7 +622,6 @@ def fly(request, job_id):
                 for file in files:
                     if file.endswith(".prj"):
                         project_name = file
-                        print project_name
                         project_path = os.path.join(root, file)
                         read_dir = os.path.dirname(project_path)
             project = ProjectFile()
@@ -857,10 +841,25 @@ def results(request, job_id, view_type):
 
     session.close()
 
-    print '/apps/gsshaindex/'+ job_id + '/get-depth-map/' + view_type
+    kml_link = ''
+    title = ''
+
+    if view_type == 'originalMax':
+        title = job.original_name.replace("_", " ") + ' Maximum Depth'
+        kml_link = job.originalMax
+    elif view_type == 'newMax':
+        title = job.new_name.replace("_", " ") + ' Maximum Depth'
+        kml_link = job.newMax
+    elif view_type == 'newTime':
+        title = job.new_name.replace("_", " ") + ' Time Series'
+        kml = job.newTime
+    elif view_type == 'originalTime':
+        title = job.original_name.replace("_", " ") + ' Time Series'
+        kml_link = job.originalTime
 
 
-
+    context['map_title'] = title
+    context['kml_link'] = kml_link
     context['hydrograph'] = hydrograph
     context['google_map'] = google_map
     context['map_type'] = view_type
@@ -877,9 +876,6 @@ def get_depth_map(request, job_id, view_type):
 
     # Get the user id
     user = str(request.user)
-
-    print "Get depth map"
-    print view_type
 
     # Get the job from the database and delete
     session = jobs_sessionmaker()
@@ -944,8 +940,6 @@ def get_depth_map(request, job_id, view_type):
         kml_link=kml_link.append("")
 
     session.close()
-
-    print "KML_LINK:", kml_link
 
     return JsonResponse({'kml_links': kml_link})
 
