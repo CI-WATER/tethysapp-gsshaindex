@@ -16,7 +16,11 @@
 	<h1>Results</h1>
 	{% gizmo highcharts_plot_view hydrograph %}
 	<h1>Depth Map: {{ map_title }}</h1>
-    <p><a href={{ kml_link }}>Link to the file being Viewed</a><i> Note: Time series can only be viewed in Google Earth</i></p>
+    {% if kml_link == None %}
+        <p></p>
+    {% else %}
+        <p><a href={{ kml_link }}>Link to download the file being Viewed</a><i> Note: Time series can only be viewed in Google Earth</i></p>
+    {% endif %}
 	<p>Select which depth map you'd like to view</p>
 	<div class="dropdown" style="padding-bottom:15px">
 	  <button class="btn btn-default dropdown-toggle" type="button" id="dropdownMenu1" data-toggle="dropdown" aria-expanded="true">

@@ -852,10 +852,13 @@ def results(request, job_id, view_type):
         kml_link = job.newMax
     elif view_type == 'newTime':
         title = job.new_name.replace("_", " ") + ' Time Series'
-        kml = job.newTime
+        kml_link = job.newTime
     elif view_type == 'originalTime':
         title = job.original_name.replace("_", " ") + ' Time Series'
         kml_link = job.originalTime
+    else:
+        kml_link = ''
+        title = ''
 
 
     context['map_title'] = title
