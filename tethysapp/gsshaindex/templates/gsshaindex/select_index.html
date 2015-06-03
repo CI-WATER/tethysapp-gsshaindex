@@ -73,7 +73,7 @@
 
 {% block primary_content %}
       <h1 class="heading_title">Index Map: {{map_name}}</h1>
-      {% gizmo editable_google_map google_map %}
+      {% gizmo google_map_view google_map %}
 {% endblock %}
 
 {% block secondary_content %}
@@ -126,7 +126,7 @@
 				};
 			});
             $('.heading_title').text("Index Map: " + map_name);
-			TETHYS_EDIT_MAP.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
+			TETHYS_GOOGLE_MAP_VIEW.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
 		};
 
         $( document).ready(function(){
