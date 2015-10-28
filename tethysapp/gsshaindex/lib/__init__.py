@@ -12,7 +12,7 @@ from gsshapy.orm import ProjectFile
 from datetime import datetime
 from os import path
 from multiprocessing import Process, Queue
-from tethys_apps.sdk import get_spatial_dataset_engine
+from tethys_sdk.services import get_spatial_dataset_engine
 import glob
 
 # Get app.ini

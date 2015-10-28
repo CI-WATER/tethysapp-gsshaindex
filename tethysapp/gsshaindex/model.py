@@ -5,15 +5,15 @@ from sqlalchemy.orm import sessionmaker
 from datetime import datetime
 import os, collections, ConfigParser
 
-from .utilities import get_persistent_store_engine
+from .app import GSSHAIndex as app
 
 # Create DB Engine, SessionMaker, and Base for jobs DB
-Engine = get_persistent_store_engine("gsshaidx_db")
+Engine = app.get_persistent_store_engine("gsshaidx_db")
 jobs_sessionmaker = sessionmaker(bind=Engine)
 Base = declarative_base()
 
 # Create DB gsshapy_engine and sessionmaker for Main DB
-gsshapy_engine = get_persistent_store_engine("gsshapy_db")
+gsshapy_engine = app.get_persistent_store_engine("gsshapy_db")
 gsshapy_sessionmaker = sessionmaker(bind=gsshapy_engine)
 
 

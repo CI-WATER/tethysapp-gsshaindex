@@ -15,6 +15,8 @@ from mapkit.ColorRampGenerator import ColorRampEnum
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
 
+CKAN_engine = get_dataset_engine(name='default')
+
 def home(request):
     """
     Controller for the app home page.
@@ -22,7 +24,7 @@ def home(request):
     context = {}
     session = jobs_sessionmaker()
     user = str(request.user)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
     session = jobs_sessionmaker()
 
     # Check to see if there's a models package
@@ -45,8 +47,11 @@ def home(request):
             return redirect(reverse('gsshaindex:extract_gssha', kwargs={'job_id':new_id}))
 
     # Find all the GSSHA models in the datasets
+    resources = []
     results = CKAN_engine.get_dataset('gssha-models')
-    resources = results['result']['resources']
+    print results
+    if results['success']:
+        resources = results['result']['resources']
 
     # Create empty array to hold the information for the GSSHA models
     model_list = []
@@ -121,10 +126,11 @@ def get_mask_map(request, file_id):
     if job.kml_url != None:
         kml_links.append(job.kml_url)
         #TODO Need some way to check and see if the link works or if it's broken
+        print kml_links
         return JsonResponse({'kml_links': kml_links})
     else:
         # Check that there's a package to store kmls
-        CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+        # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
         present = gi_lib.check_package('kmls', CKAN_engine)
 
         # Specify the workspace
@@ -189,7 +195,7 @@ def extract_gssha(request, job_id):
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user,session)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -277,7 +283,7 @@ def extract_existing_gssha(request, job_id):
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user,session)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -318,7 +324,7 @@ def select_index(request, job_id):
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user, session)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Get project file id
     project_file_id = job.new_model_id
@@ -385,7 +391,7 @@ def get_index_maps(request, job_id, index_name):
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user,session)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Get the list of index files to display
     resource_list = json.loads(job.current_kmls)
@@ -407,7 +413,7 @@ def zip_file(request, job_id):
     user = str(request.user)
     session = jobs_sessionmaker()
     job, success = gi_lib.get_pending_job(job_id, user,session)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     project_file_id = job.new_model_id
 
@@ -559,7 +565,7 @@ def fly(request, job_id):
 
     # Get the user id
     user = str(request.user)
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     # Specify the workspace
     controllerDir = os.path.abspath(os.path.dirname(__file__))
@@ -895,7 +901,7 @@ def get_depth_map(request, job_id, view_type):
     newDepthDir = os.path.join(depthMapDir, 'new')
     originalDepthDir = os.path.join(depthMapDir, 'original')
 
-    CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
+    # # CKAN_engine = get_dataset_engine(name='gsshaindex_ciwweb', app_class=GSSHAIndex)
 
     kml_link = []
 

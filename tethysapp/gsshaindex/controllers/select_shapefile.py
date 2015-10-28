@@ -17,7 +17,7 @@ from datetime import datetime, date
 from mapkit.ColorRampGenerator import ColorRampEnum
 import requests
 import subprocess
-from tethys_apps.sdk import get_spatial_dataset_engine
+from tethys_sdk.services import get_spatial_dataset_engine
 
 from ..model import Jobs, jobs_sessionmaker, gsshapy_sessionmaker, gsshapy_engine
 

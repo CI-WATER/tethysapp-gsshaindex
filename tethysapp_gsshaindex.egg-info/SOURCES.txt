@@ -11,7 +11,9 @@ tethysapp/gsshaindex/controllers/combine_index.py
 tethysapp/gsshaindex/controllers/draw_index.py
 tethysapp/gsshaindex/controllers/index_desc_and_val.py
 tethysapp/gsshaindex/controllers/main.py
+tethysapp/gsshaindex/controllers/select_shapefile.py
 tethysapp/gsshaindex/lib/__init__.py
+tethysapp/gsshaindex/lib/timeout_function_explanation.py
 tethysapp_gsshaindex.egg-info/PKG-INFO
 tethysapp_gsshaindex.egg-info/SOURCES.txt
 tethysapp_gsshaindex.egg-info/dependency_links.txt
