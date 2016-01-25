@@ -78,7 +78,7 @@
                 name = data.name;
                 $('.heading_title').text("GSSHA Model: " + name);
             });
-            TETHYS_GOOGLE_MAP_VIEW.swapKmlService('/apps/gsshaindex/get-mask-map/'+file_id);
+            TETHYS_GOOGLE_MAP_VIEW.swapKmlService('get-mask-map/'+file_id);
         });
 	</script>
 {% endblock %}

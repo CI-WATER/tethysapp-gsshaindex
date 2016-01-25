@@ -129,19 +129,19 @@
 			TETHYS_GOOGLE_MAP_VIEW.swapKmlService('/apps/gsshaindex/' +job_id+ '/get-index-maps/'+map_name);
 		};
 
-        $( document).ready(function(){
-            $("select option").each(function(){
-				if ($(this).get(0).find(":selected").id() == "option1"){
-					$("#editing_description").text("Manually draw polygons to change the index maps.");
-				}
-				else if ($(this).get(0).find(":selected").id() == "option2"){
-					$("#editing_description").text("Select a shapefile to upload and use for your new index map.");
-				}
-				else if ($(this).get(0).find(":selected").id() == "option3"){
-					$("#editing_description").text("Select two index maps to combine, or select one index map to replace this one.");
-				}
-			});
-        });
+//        $( document).ready(function(){
+//            $("select option").each(function(){
+//				if ($(this).get(0).find(":selected").id() == "option1"){
+//					$("#editing_description").text("Manually draw polygons to change the index maps.");
+//				}
+//				else if ($(this).get(0).find(":selected").id() == "option2"){
+//					$("#editing_description").text("Select a shapefile to upload and use for your new index map.");
+//				}
+//				else if ($(this).get(0).find(":selected").id() == "option3"){
+//					$("#editing_description").text("Select two index maps to combine, or select one index map to replace this one.");
+//				}
+//			});
+//        });
 
 		$("select").change(function(){
             var selected_id = $(this).children(":selected").attr("id");

@@ -49,7 +49,7 @@ def home(request):
     # Find all the GSSHA models in the datasets
     resources = []
     results = CKAN_engine.get_dataset('gssha-models')
-    print results
+
     if results['success']:
         resources = results['result']['resources']
 
@@ -124,9 +124,10 @@ def get_mask_map(request, file_id):
     job, success = gi_lib.get_new_job(file_id, user,session)
 
     if job.kml_url != None:
+        print job.kml_url
         kml_links.append(job.kml_url)
         #TODO Need some way to check and see if the link works or if it's broken
-        print kml_links
+
         return JsonResponse({'kml_links': kml_links})
     else:
         # Check that there's a package to store kmls
